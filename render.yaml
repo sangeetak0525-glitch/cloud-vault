@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cloudvault-backend
+    env: docker
+    plan: starter
+    dockerfilePath: backend/Dockerfile
+    envVars:
+      - key: ADMIN_SECRET
+        value: CLOUDVAULT_ADMIN_2024
+      - key: DEFAULT_ADMIN_EMAIL
+        value: admin@cloudvault.io
+      - key: DEFAULT_ADMIN_PASSWORD
+        value: admin
+      - key: SECRET_KEY
+        value: supersecret
+      - key: APP_URL
+        value: https://your-app-name.onrender.com
+      - key: DATABASE_URL
+        value: sqlite:///./cloudvault.db

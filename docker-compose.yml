@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./cloudvault.db
+      - DEFAULT_ADMIN_EMAIL=admin@cloudvault.io
+      - DEFAULT_ADMIN_PASSWORD=admin
+      - ADMIN_SECRET=CLOUDVAULT_ADMIN_2024
+      - SECRET_KEY=supersecret
+      - APP_URL=http://localhost:8000
+    volumes:
+      - ./cloudvault.db:/app/cloudvault.db
+      - ./uploads:/app/uploads

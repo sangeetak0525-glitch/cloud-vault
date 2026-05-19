@@ -1,0 +1,1675 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudVault</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f2f5;--surface:#fff;--sidebar:#1e2130;--sidebar2:#262b3d;
+  --blue:#3b82f6;--blue2:#2563eb;--blue-light:#eff6ff;--blue-mid:#bfdbfe;
+  --green:#10b981;--green-light:#d1fae5;--red:#ef4444;--red-light:#fee2e2;
+  --yellow:#f59e0b;--yellow-light:#fef3c7;--purple:#8b5cf6;--purple-light:#ede9fe;
+  --ink:#111827;--ink2:#374151;--ink3:#6b7280;--ink4:#9ca3af;
+  --border:#e5e7eb;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);font-size:13px;height:100vh;overflow:hidden}
+
+/* VIEWS */
+.view{display:none}
+.view.active{display:flex;height:100vh}
+
+/* ── LOGIN ── */
+#view-login{align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f172a 100%);flex-direction:column}
+#view-login::before{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")}
+.login-card{background:rgba(255,255,255,.97);border-radius:20px;padding:44px 40px;width:420px;position:relative;z-index:1;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.login-brand-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--blue),#6366f1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.login-brand-name{font-size:1.4rem;font-weight:700;color:var(--ink)}
+.login-brand-name span{color:var(--blue)}
+.login-sub{font-size:.75rem;color:var(--ink3);margin-bottom:32px}
+.login-tabs{display:flex;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px}
+.login-tab{flex:1;padding:9px;text-align:center;font-size:.75rem;font-weight:600;cursor:pointer;background:transparent;border:none;color:var(--ink3);font-family:'Inter',sans-serif;transition:all .2s}
+.login-tab.active{background:var(--blue);color:#fff}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:.72rem;font-weight:600;color:var(--ink2);margin-bottom:6px;letter-spacing:.02em}
+.form-input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:.82rem;color:var(--ink);background:#f9fafb;transition:all .2s;outline:none}
+.form-input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.btn{padding:10px 16px;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:6px}
+.btn-blue{background:var(--blue);color:#fff;width:100%;justify-content:center}
+.btn-blue:hover{background:var(--blue2);transform:translateY(-1px)}
+.btn-sm{padding:6px 13px;font-size:.72rem}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2)}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+.btn-red{background:var(--red);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.login-hint{margin-top:18px;font-size:.72rem;color:var(--ink3);background:#f9fafb;border-radius:8px;padding:11px;line-height:1.7;text-align:center}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow:hidden}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-brand-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--blue),#6366f1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+.sb-brand-name{font-size:1rem;font-weight:700;color:#fff}
+.sb-brand-name span{color:var(--blue)}
+.sb-section{padding:16px 12px 6px;font-size:.65rem;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase}
+.sb-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;margin:1px 6px;cursor:pointer;color:rgba(255,255,255,.55);font-size:.8rem;font-weight:500;transition:all .15s;border:none;background:transparent;font-family:'Inter',sans-serif;width:calc(100% - 12px);text-align:left}
+.sb-link:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.9)}
+.sb-link.active{background:rgba(59,130,246,.2);color:#93c5fd}
+.sb-link-icon{font-size:.95rem;width:18px;text-align:center}
+.sb-link-count{margin-left:auto;font-size:.65rem;background:rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:2px 7px;border-radius:100px}
+.sb-storage{margin:auto 0 0;padding:16px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-storage-label{font-size:.7rem;color:rgba(255,255,255,.4);margin-bottom:6px;display:flex;justify-content:space-between}
+.sb-storage-label span{color:rgba(255,255,255,.7);font-weight:600}
+.storage-bar{height:4px;background:rgba(255,255,255,.1);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.storage-fill{height:100%;background:linear-gradient(90deg,var(--blue),#6366f1);border-radius:10px;width:62%}
+.sb-user{display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:10px;cursor:pointer;transition:background .15s}
+.sb-user:hover{background:rgba(255,255,255,.07)}
+.sb-avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.av-blue{background:linear-gradient(135deg,var(--blue),#6366f1)}
+.av-amber{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+.sb-user-name{font-size:.78rem;font-weight:600;color:#fff}
+.sb-user-role{font-size:.65rem;color:rgba(255,255,255,.35)}
+.sb-logout{margin-left:auto;font-size:.7rem;color:rgba(255,255,255,.25);cursor:pointer;transition:color .15s;border:none;background:none;font-family:'Inter',sans-serif;padding:4px}
+.sb-logout:hover{color:#ef4444}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
+.search-bar{flex:1;max-width:480px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:7px 12px}
+.search-bar input{border:none;background:transparent;outline:none;font-family:'Inter',sans-serif;font-size:.8rem;color:var(--ink);width:100%}
+.search-bar input::placeholder{color:var(--ink4)}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.view-toggle{display:flex;border:1.5px solid var(--border);border-radius:7px;overflow:hidden}
+.vt-btn{padding:5px 9px;border:none;background:transparent;cursor:pointer;color:var(--ink3);font-size:.85rem;transition:all .15s}
+.vt-btn.active{background:var(--blue);color:#fff}
+.content-area{flex:1;overflow-y:auto;padding:24px}
+
+/* BREADCRUMB */
+.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:18px;font-size:.78rem;color:var(--ink3)}
+.bc-item{cursor:pointer;transition:color .15s}
+.bc-item:hover{color:var(--blue)}
+.bc-item.active{color:var(--ink);font-weight:600}
+.bc-sep{color:var(--border)}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:1.2rem;font-weight:700;color:var(--ink)}
+.header-actions{display:flex;gap:8px}
+
+/* QUICK ACCESS */
+.quick-strip{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+.quick-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .18s;flex:1;min-width:160px}
+.quick-card:hover{border-color:var(--blue-mid);box-shadow:var(--shadow);transform:translateY(-1px)}
+.quick-card-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.qi-blue{background:var(--blue-light)}
+.qi-green{background:var(--green-light)}
+.qi-yellow{background:var(--yellow-light)}
+.qi-purple{background:var(--purple-light)}
+.quick-card-label{font-size:.78rem;font-weight:600;color:var(--ink)}
+.quick-card-sub{font-size:.68rem;color:var(--ink3)}
+
+/* SECTION */
+.section-label{font-size:.72rem;font-weight:600;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.see-all{color:var(--blue);cursor:pointer;font-size:.7rem;font-weight:500;text-transform:none;letter-spacing:0}
+
+/* GRID VIEW */
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+.file-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px 14px;cursor:pointer;transition:all .18s;position:relative;user-select:none}
+.file-card:hover{border-color:var(--blue-mid);box-shadow:var(--shadow)}
+.file-card.selected{border-color:var(--blue);background:var(--blue-light)}
+.file-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:12px}
+.file-card-name{font-size:.78rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.file-card-meta{font-size:.66rem;color:var(--ink4)}
+.file-card-check{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;display:none;align-items:center;justify-content:center;font-size:.6rem}
+.file-card.selected .file-card-check{display:flex}
+.file-card-star{position:absolute;top:10px;right:10px;font-size:.8rem;color:var(--ink4);display:none}
+.file-card:hover .file-card-star{display:block}
+.file-card.starred .file-card-star{display:block;color:var(--yellow)}
+
+/* LIST VIEW */
+.file-list{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:28px}
+.list-header{display:grid;grid-template-columns:2fr 100px 120px 80px 80px;padding:9px 16px;background:var(--bg);border-bottom:1px solid var(--border);font-size:.68rem;font-weight:600;color:var(--ink3);letter-spacing:.04em}
+.list-row{display:grid;grid-template-columns:2fr 100px 120px 80px 80px;padding:10px 16px;border-bottom:1px solid rgba(229,231,235,.6);align-items:center;cursor:pointer;transition:background .12s}
+.list-row:last-child{border-bottom:none}
+.list-row:hover{background:var(--bg)}
+.list-row.selected{background:var(--blue-light)}
+.list-name{display:flex;align-items:center;gap:10px;font-size:.8rem;font-weight:500;color:var(--ink)}
+.list-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.list-cell{font-size:.75rem;color:var(--ink3)}
+.list-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.list-row:hover .list-actions{opacity:1}
+.icon-btn{width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:background .12s;color:var(--ink2)}
+.icon-btn:hover{background:var(--border)}
+
+/* FILE TYPE COLORS */
+.ft-folder{background:#fef3c7;} .ft-pdf{background:#fee2e2;} .ft-doc{background:#dbeafe;}
+.ft-img{background:#d1fae5;} .ft-vid{background:#ede9fe;} .ft-zip{background:#f3f4f6;}
+.ft-xls{background:#d1fae5;} .ft-ppt{background:#fce7f3;} .ft-txt{background:#f9fafb;}
+.ft-code{background:#ecfdf5;}
+
+/* UPLOAD MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;width:520px;max-height:85vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-lg)}
+.modal-head{padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:1rem;font-weight:700;color:var(--ink)}
+.modal-close{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.9rem;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--bg)}
+.modal-body{padding:0 24px 24px}
+.dropzone{border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.dropzone:hover{border-color:var(--blue);background:var(--blue-light)}
+.dropzone-icon{font-size:2.5rem;margin-bottom:10px}
+.dropzone-text{font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:4px}
+.dropzone-hint{font-size:.72rem;color:var(--ink3)}
+.upload-list{margin-top:16px}
+.upload-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg);border-radius:8px;margin-bottom:8px}
+.upload-item-icon{font-size:1.2rem}
+.upload-item-name{font-size:.78rem;font-weight:500;color:var(--ink);flex:1}
+.upload-item-size{font-size:.7rem;color:var(--ink3)}
+.upload-progress-bar{height:3px;background:var(--border);border-radius:10px;margin-top:5px;overflow:hidden}
+.upload-progress-fill{height:100%;background:var(--blue);border-radius:10px;transition:width .1s}
+.upload-item-status{font-size:.7rem;font-weight:600}
+.us-done{color:var(--green)}
+.us-prog{color:var(--blue)}
+
+/* DETAIL PANEL */
+.detail-panel{width:280px;background:var(--surface);border-left:1px solid var(--border);display:none;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto}
+.detail-panel.open{display:flex}
+.dp-head{padding:18px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dp-title{font-size:.85rem;font-weight:700;color:var(--ink)}
+.dp-icon-wrap{width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:4rem;border-bottom:1px solid var(--border);background:var(--bg)}
+.dp-section{padding:16px}
+.dp-name{font-size:.88rem;font-weight:700;color:var(--ink);margin-bottom:4px;word-break:break-all}
+.dp-path{font-size:.7rem;color:var(--ink3);margin-bottom:16px}
+.dp-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(229,231,235,.5)}
+.dp-row:last-child{border-bottom:none}
+.dp-key{font-size:.72rem;color:var(--ink3)}
+.dp-val{font-size:.72rem;font-weight:600;color:var(--ink)}
+.dp-actions{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px}
+.dp-action-btn{width:100%;padding:9px;border-radius:8px;border:1.5px solid var(--border);background:transparent;font-family:'Inter',sans-serif;font-size:.77rem;font-weight:600;cursor:pointer;color:var(--ink2);transition:all .15s;display:flex;align-items:center;gap:8px;justify-content:center}
+.dp-action-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light)}
+.dp-action-btn.danger:hover{border-color:var(--red);color:var(--red);background:var(--red-light)}
+
+/* ADMIN */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:18px}
+.stat-label{font-size:.7rem;color:var(--ink3);margin-bottom:6px;font-weight:500}
+.stat-val{font-size:1.6rem;font-weight:700;color:var(--ink);line-height:1}
+.stat-change{font-size:.68rem;margin-top:4px}
+.sc-up{color:var(--green)}.sc-dn{color:var(--red)}
+.data-table{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;overflow:hidden}
+.dt-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dt-title{font-size:.85rem;font-weight:700;color:var(--ink)}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 14px;text-align:left;font-size:.67rem;font-weight:600;color:var(--ink3);letter-spacing:.05em;text-transform:uppercase;background:var(--bg);border-bottom:1px solid var(--border)}
+td{padding:10px 14px;font-size:.78rem;color:var(--ink);border-bottom:1px solid rgba(229,231,235,.5)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg)}
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:.65rem;font-weight:600}
+.p-green{background:var(--green-light);color:#065f46}
+.p-blue{background:var(--blue-light);color:var(--blue2)}
+.p-red{background:var(--red-light);color:#991b1b}
+.p-yellow{background:var(--yellow-light);color:#92400e}
+.p-gray{background:#f3f4f6;color:#4b5563}
+
+/* NOTIF */
+.notif{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:10px;font-size:.78rem;font-weight:500;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;max-width:320px}
+.notif.show{transform:translateY(0);opacity:1}
+.n-success{background:#065f46;color:#fff}
+.n-error{background:#991b1b;color:#fff}
+.n-info{background:var(--ink);color:#fff}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+</style>
+</head>
+<body>
+
+<div id="view-login" class="view active">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-icon">☁️</div>
+      <div class="login-brand-name">Cloud<span>Vault</span></div>
+    </div>
+    <p class="login-sub" style="margin-bottom:28px">Secure cloud storage — store, access & share your files from anywhere.</p>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="setLoginRole('user',this)">Personal</button>
+      <button class="login-tab" onclick="setLoginRole('admin',this)">Admin</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="l-email" type="email" value="user@cloudvault.io">
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="l-pass" type="password" value="password">
+    </div>
+    <button class="btn btn-blue" onclick="doLogin()">Sign In →</button>
+    <div class="login-hint">
+      <strong>Demo</strong><br>
+      Personal: user@cloudvault.io&nbsp; · &nbsp;Admin: admin@cloudvault.io<br>
+      Password: password
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Upload files</div>
+      <button class="modal-close" onclick="closeUpload()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dropzone" onclick="triggerUpload()" id="dropzone">
+        <div class="dropzone-icon">☁️</div>
+        <div class="dropzone-text">Drop files here or click to browse</div>
+        <div class="dropzone-hint">Supports all file types · Max 5 GB per file</div>
+      </div>
+      <div class="upload-list" id="upload-list"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="closeUpload()">Cancel</button>
+        <button class="btn btn-blue btn-sm" onclick="startUpload()">⬆ Upload all</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ============================
+// 💾 BROWSER LOCAL STORAGE DB
+// ============================
+// We are using the browser's localStorage to make the UI fully functional instantly.
+let files = JSON.parse(localStorage.getItem('cv_files')) || [];
+let currentRole = 'user'; 
+let currentPage = 'home';
+let selectedFileId = null;
+
+// Seed demo data if storage is empty
+if (files.length === 0) {
+  files = [
+    { id: 1, name: "Project_Proposal.pdf", size: "2.4 MB", type: "ft-pdf", icon: "📄", starred: true, shared: false, trash: false, date: new Date().toLocaleDateString() },
+    { id: 2, name: "Vacation_Photos.zip", size: "145 MB", type: "ft-zip", icon: "🗜️", starred: false, shared: false, trash: false, date: new Date().toLocaleDateString() },
+    { id: 3, name: "Q3_Financials.xlsx", size: "840 KB", type: "ft-xls", icon: "📊", starred: false, shared: true, trash: false, date: new Date().toLocaleDateString() },
+    { id: 4, name: "Old_Design.png", size: "4.1 MB", type: "ft-img", icon: "🖼️", starred: false, shared: false, trash: true, date: new Date().toLocaleDateString() }
+  ];
+  saveToLocal();
+}
+
+function saveToLocal() {
+  localStorage.setItem('cv_files', JSON.stringify(files));
+  updateSidebarCounts();
+}
+
+// ============================
+// 🖥️ UI NAVIGATION & VIEWS
+// ============================
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+}
+
+function showNotif(msg, type='info'){
+  const notif = document.getElementById('notif');
+  notif.className = `notif show n-${type}`;
+  notif.innerHTML = msg;
+  setTimeout(() => notif.classList.remove('show'), 3000);
+}
+
+function updateSidebarCounts() {
+  const activeFiles = files.filter(f => !f.trash).length;
+  document.getElementById('sb-count').innerText = activeFiles;
+}
+
+// ============================
+// 🔑 LOGIN LOGIC
+// ============================
+function setLoginRole(role, btn){
+  currentRole = role;
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('l-email').value = role === 'admin' ? 'admin@cloudvault.io' : 'user@cloudvault.io';
+}
+
+function doLogin(){
+  showNotif(`Logged in as ${currentRole} (Local Storage Mode)`, 'success');
+  if(currentRole === 'admin') {
+    showView('admin');
+  } else {
+    showView('user');
+    userPage('home', document.querySelector('.sb-link.active'));
+  }
+}
+
+function logout(){ 
+  showView('login'); 
+  showNotif("Signed out successfully", "info");
+}
+
+// ============================
+// 📁 SIDEBAR & FILE RENDERING
+// ============================
+function userPage(page, btn){
+  currentPage = page;
+  closeDetail();
+  
+  if(btn) {
+    document.querySelectorAll('#view-user .sb-link').forEach(l => l.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const c = document.getElementById('user-content');
+  
+  // Filter files based on sidebar selection
+  let filtered = [];
+  let pageTitle = "My Files";
+
+  switch(page) {
+    case 'home':
+    case 'myfiles':
+      filtered = files.filter(f => !f.trash);
+      pageTitle = "My Files";
+      break;
+    case 'starred':
+      filtered = files.filter(f => f.starred && !f.trash);
+      pageTitle = "Starred Files";
+      break;
+    case 'shared':
+      filtered = files.filter(f => f.shared && !f.trash);
+      pageTitle = "Shared With Me";
+      break;
+    case 'recent':
+      filtered = files.filter(f => !f.trash).reverse(); // Just reverse for demo
+      pageTitle = "Recent Files";
+      break;
+    case 'trash':
+      filtered = files.filter(f => f.trash);
+      pageTitle = "Trash";
+      break;
+  }
+
+  if(filtered.length === 0){
+    c.innerHTML = `
+      <div class="page-header"><div class="page-title">${pageTitle}</div></div>
+      <p style='color:var(--ink3); text-align:center; margin-top: 40px;'>No files found here.</p>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${pageTitle}</div>
+      ${page === 'trash' ? `<button class="btn btn-red btn-sm" onclick="emptyTrash()">Empty Trash</button>` : ''}
+    </div>
+    <div class="file-grid">
+      ${filtered.map(f => `
+        <div class="file-card ${f.starred ? 'starred' : ''}" onclick="openDetail(${f.id})">
+          <div class="file-card-star" onclick="toggleStar(event, ${f.id})">★</div>
+          <div class="file-card-icon ${f.type}">${f.icon}</div>
+          <div class="file-card-name">${f.name}</div>
+          <div class="file-card-meta">${f.size} · ${f.date}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ============================
+// 📝 DETAIL PANEL ACTIONS
+// ============================
+// ============================
+// ⚙️ FILE OPERATIONS
+// ============================
+
+// ============================
+// ⬆️ UPLOADS
+// ============================
+function openUpload() { document.getElementById('upload-modal').classList.add('open'); }
+function closeUpload() { document.getElementById('upload-modal').classList.remove('open'); }
+function triggerUpload() { startUpload(); }
+
+function startUpload(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.onchange = () => {
+    const file = input.files[0];
+    
+    // Create new local record
+    const newFile = {
+      id: Date.now(),
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2) + " MB",
+      type: "ft-doc",
+      icon: "📄",
+      starred: false,
+      shared: false,
+      trash: false,
+      date: new Date().toLocaleDateString()
+    };
+    
+    files.push(newFile);
+    saveToLocal();
+    
+    showNotif("File uploaded successfully!", "success");
+    closeUpload();
+    userPage(currentPage);
+  };
+  input.click();
+}
+
+function newFolder(){ showNotif("Creating new folder...", "info"); }
+
+// Init counts on load
+updateSidebarCounts();
+</script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudVault</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0d14;--bg2:#0f1421;--surface:#141a27;--surface2:#1a2133;
+  --blue:#4f8ef7;--blue2:#2563eb;--blue-glow:rgba(79,142,247,.18);
+  --green:#22d3a0;--green-light:rgba(34,211,160,.12);
+  --red:#f0516a;--red-light:rgba(240,81,106,.12);
+  --yellow:#f5c842;--yellow-light:rgba(245,200,66,.12);
+  --purple:#a78bfa;--purple-light:rgba(167,139,250,.12);
+  --ink:#e8edf7;--ink2:#a0aec0;--ink3:#64748b;--ink4:#374151;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --shadow:0 4px 24px rgba(0,0,0,.4);--shadow-lg:0 16px 64px rgba(0,0,0,.6);
+  --r:12px;
+}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--ink);font-size:13px;height:100vh;overflow:hidden}
+.view{display:none}
+.view.active{display:flex;height:100vh}
+
+/* ══ ANIMATED BACKGROUND ════════════════════════════════════════════════════ */
+.bg-grid{position:fixed;inset:0;z-index:0;opacity:.35;pointer-events:none;
+  background-image:linear-gradient(rgba(79,142,247,.06) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(79,142,247,.06) 1px,transparent 1px);
+  background-size:40px 40px}
+.bg-glow{position:fixed;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(79,142,247,.08) 0%,transparent 70%);
+  top:-200px;left:-100px;z-index:0;pointer-events:none;animation:glowMove 8s ease-in-out infinite}
+.bg-glow2{position:fixed;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(167,139,250,.06) 0%,transparent 70%);
+  bottom:-100px;right:-50px;z-index:0;animation:glowMove2 10s ease-in-out infinite}
+@keyframes glowMove{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes glowMove2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-30px)}}
+
+/* ══ LOGIN / REGISTER VIEW ══════════════════════════════════════════════════ */
+#view-login{align-items:center;justify-content:center;flex-direction:column;position:relative}
+.auth-card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+  padding:40px 36px;width:440px;position:relative;z-index:10;
+  box-shadow:0 0 0 1px rgba(79,142,247,.1),var(--shadow-lg);
+  animation:cardIn .5s cubic-bezier(.22,1,.36,1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.auth-brand-icon{width:42px;height:42px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  box-shadow:0 0 20px rgba(79,142,247,.3)}
+.auth-brand-name{font-size:1.5rem;font-weight:800;color:var(--ink)}
+.auth-brand-name span{color:var(--blue)}
+.auth-tagline{font-size:.72rem;color:var(--ink3);margin-bottom:28px}
+
+/* Tabs */
+.auth-tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;gap:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:.75rem;font-weight:600;cursor:pointer;
+  border:none;background:transparent;color:var(--ink3);font-family:'Sora',sans-serif;
+  border-radius:7px;transition:all .2s}
+.auth-tab.active{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(79,142,247,.4)}
+
+/* Mode tabs (login/register) */
+.mode-tabs{display:flex;gap:0;margin-bottom:22px}
+.mode-tab{flex:1;padding:9px;text-align:center;font-size:.75rem;font-weight:600;cursor:pointer;
+  border:none;background:transparent;color:var(--ink3);font-family:'Sora',sans-serif;
+  border-bottom:2px solid var(--border);transition:all .2s}
+.mode-tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:.68rem;font-weight:600;color:var(--ink2);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+.form-input{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:9px;
+  font-family:'Sora',sans-serif;font-size:.82rem;color:var(--ink);background:var(--bg2);
+  transition:all .2s;outline:none}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-glow)}
+.form-input::placeholder{color:var(--ink4)}
+.form-input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Admin secret toggle */
+.admin-secret-box{background:var(--yellow-light);border:1px solid rgba(245,200,66,.3);
+  border-radius:9px;padding:12px;margin-bottom:14px;display:none}
+.admin-secret-box.show{display:block}
+.admin-secret-note{font-size:.68rem;color:var(--yellow);margin-bottom:8px;font-weight:600}
+
+.btn{padding:11px 18px;border:none;border-radius:9px;font-family:'Sora',sans-serif;
+  font-size:.8rem;font-weight:700;cursor:pointer;transition:all .18s;
+  display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;width:100%;
+  box-shadow:0 4px 16px rgba(79,142,247,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,142,247,.45)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--ink2)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-sm{padding:6px 13px;font-size:.72rem}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid rgba(240,81,106,.3)}
+
+.auth-error{background:var(--red-light);border:1px solid rgba(240,81,106,.3);border-radius:8px;
+  padding:10px 13px;font-size:.75rem;color:var(--red);margin-bottom:14px;display:none}
+.auth-error.show{display:block}
+
+/* ══ MAIN APP LAYOUT ════════════════════════════════════════════════════════ */
+.sidebar{width:240px;background:var(--surface);display:flex;flex-direction:column;
+  flex-shrink:0;height:100vh;overflow:hidden;border-right:1px solid var(--border)}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:20px 16px 16px;border-bottom:1px solid var(--border)}
+.sb-brand-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.sb-brand-name{font-size:1rem;font-weight:800;color:var(--ink)}
+.sb-brand-name span{color:var(--blue)}
+.sb-section{padding:14px 12px 5px;font-size:.6rem;font-weight:700;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
+.sb-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;
+  margin:1px 6px;cursor:pointer;color:var(--ink2);font-size:.78rem;font-weight:500;
+  transition:all .15s;border:none;background:transparent;font-family:'Sora',sans-serif;
+  width:calc(100% - 12px);text-align:left}
+.sb-link:hover{background:rgba(255,255,255,.05);color:var(--ink)}
+.sb-link.active{background:var(--blue-glow);color:var(--blue)}
+.sb-link-icon{font-size:.9rem;width:18px;text-align:center}
+.sb-link-count{margin-left:auto;font-size:.62rem;background:rgba(255,255,255,.08);color:var(--ink3);padding:2px 7px;border-radius:100px}
+.sb-storage{margin:auto 0 0;padding:14px;border-top:1px solid var(--border)}
+.sb-storage-label{font-size:.67rem;color:var(--ink3);margin-bottom:6px;display:flex;justify-content:space-between}
+.sb-storage-label span{color:var(--ink);font-weight:600}
+.storage-bar{height:3px;background:rgba(255,255,255,.08);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.storage-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--blue),var(--purple))}
+.sb-user{display:flex;align-items:center;gap:9px;padding:10px;border-radius:9px;cursor:pointer;transition:background .15s}
+.sb-user:hover{background:rgba(255,255,255,.05)}
+.sb-avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--purple))}
+.sb-user-name{font-size:.78rem;font-weight:600;color:var(--ink)}
+.sb-user-role{font-size:.62rem;color:var(--ink3)}
+.sb-logout{margin-left:auto;font-size:.68rem;color:var(--ink4);cursor:pointer;border:none;background:none;font-family:'Sora',sans-serif;padding:4px;transition:color .15s}
+.sb-logout:hover{color:var(--red)}
+
+/* ══ MAIN CONTENT ═══════════════════════════════════════════════════════════ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:54px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 22px;gap:12px;flex-shrink:0}
+.search-bar{flex:1;max-width:400px;display:flex;align-items:center;gap:8px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:7px 12px;
+  transition:border-color .2s}
+.search-bar:focus-within{border-color:var(--blue)}
+.search-bar input{border:none;background:transparent;outline:none;font-family:'Sora',sans-serif;font-size:.78rem;color:var(--ink);width:100%}
+.search-bar input::placeholder{color:var(--ink4)}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.content-area{flex:1;overflow-y:auto;padding:22px}
+
+/* ══ PAGE HEADER ════════════════════════════════════════════════════════════ */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:1.15rem;font-weight:700;color:var(--ink)}
+.header-actions{display:flex;gap:8px}
+
+/* ══ FILE GRID ══════════════════════════════════════════════════════════════ */
+.file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:11px;margin-bottom:24px}
+.file-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 13px;cursor:pointer;transition:all .18s;position:relative;user-select:none}
+.file-card:hover{border-color:var(--blue);background:var(--surface2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.file-card-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px}
+.file-card-name{font-size:.76rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.file-card-meta{font-size:.64rem;color:var(--ink3)}
+.file-card-star{position:absolute;top:9px;right:9px;font-size:.8rem;color:var(--ink4);opacity:0;transition:opacity .15s;background:none;border:none;cursor:pointer}
+.file-card:hover .file-card-star{opacity:1}
+.file-card.starred .file-card-star{opacity:1;color:var(--yellow)}
+.ft-pdf{background:rgba(240,81,106,.12)} .ft-doc{background:rgba(79,142,247,.12)}
+.ft-img{background:rgba(34,211,160,.12)} .ft-vid{background:rgba(167,139,250,.12)}
+.ft-zip{background:rgba(100,116,139,.12)} .ft-xls{background:rgba(34,211,160,.12)}
+.ft-txt{background:rgba(255,255,255,.05)} .ft-other{background:rgba(255,255,255,.05)}
+
+/* ══ EMPTY STATE ════════════════════════════════════════════════════════════ */
+.empty-state{text-align:center;padding:60px 20px;color:var(--ink3)}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.5}
+.empty-text{font-size:.85rem;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.empty-sub{font-size:.75rem}
+
+/* ══ MODAL ══════════════════════════════════════════════════════════════════ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;
+  align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;
+  width:500px;max-height:85vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-lg)}
+.modal-head{padding:22px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-size:.95rem;font-weight:700;color:var(--ink)}
+.modal-close{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;
+  cursor:pointer;font-size:.85rem;color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.modal-close:hover{background:var(--bg2)}
+.modal-body{padding:0 22px 22px}
+.dropzone{border:2px dashed var(--border2);border-radius:var(--r);padding:32px;text-align:center;
+  cursor:pointer;transition:all .2s;background:var(--bg2)}
+.dropzone:hover{border-color:var(--blue);background:var(--blue-glow)}
+.dropzone-icon{font-size:2.2rem;margin-bottom:8px}
+.dropzone-text{font-size:.83rem;font-weight:600;color:var(--ink);margin-bottom:3px}
+.dropzone-hint{font-size:.7rem;color:var(--ink3)}
+.upload-list{margin-top:14px}
+.upload-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);
+  border-radius:8px;margin-bottom:7px;border:1px solid var(--border)}
+.upload-item-name{font-size:.76rem;font-weight:500;color:var(--ink);flex:1}
+.upload-item-status{font-size:.68rem;font-weight:700}
+.us-done{color:var(--green)}.us-prog{color:var(--blue)}.us-err{color:var(--red)}
+
+/* ══ DETAIL PANEL ═══════════════════════════════════════════════════════════ */
+.detail-panel{width:270px;background:var(--surface);border-left:1px solid var(--border);
+  display:none;flex-direction:column;flex-shrink:0;height:100vh;overflow-y:auto}
+.detail-panel.open{display:flex}
+.dp-head{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dp-title{font-size:.82rem;font-weight:700;color:var(--ink)}
+.dp-icon-wrap{width:100%;height:110px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;
+  border-bottom:1px solid var(--border);background:var(--bg2)}
+.dp-section{padding:14px}
+.dp-name{font-size:.85rem;font-weight:700;color:var(--ink);margin-bottom:4px;word-break:break-all}
+.dp-path{font-size:.67rem;color:var(--ink3);margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+.dp-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.dp-row:last-child{border-bottom:none}
+.dp-key{font-size:.68rem;color:var(--ink3)}
+.dp-val{font-size:.68rem;font-weight:600;color:var(--ink)}
+.dp-actions{padding:0 14px 14px;display:flex;flex-direction:column;gap:7px}
+.dp-action-btn{width:100%;padding:9px;border-radius:8px;border:1px solid var(--border2);
+  background:transparent;font-family:'Sora',sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;
+  color:var(--ink2);transition:all .15s;display:flex;align-items:center;gap:7px;justify-content:center}
+.dp-action-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-glow)}
+.dp-action-btn.danger:hover{border-color:var(--red);color:var(--red);background:var(--red-light)}
+
+/* ══ ADMIN STATS ════════════════════════════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.stat-label{font-size:.67rem;color:var(--ink3);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.stat-val{font-size:1.7rem;font-weight:800;color:var(--ink);line-height:1}
+.stat-icon{font-size:1.4rem;margin-bottom:6px}
+
+/* ══ DATA TABLE ═════════════════════════════════════════════════════════════ */
+.data-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.dt-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dt-title{font-size:.83rem;font-weight:700;color:var(--ink)}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 14px;text-align:left;font-size:.63rem;font-weight:700;color:var(--ink3);
+  letter-spacing:.06em;text-transform:uppercase;background:var(--bg2);border-bottom:1px solid var(--border)}
+td{padding:10px 14px;font-size:.76rem;color:var(--ink);border-bottom:1px solid rgba(255,255,255,.04)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:.62rem;font-weight:700}
+.p-green{background:var(--green-light);color:var(--green)}
+.p-blue{background:var(--blue-glow);color:var(--blue)}
+.p-red{background:var(--red-light);color:var(--red)}
+.p-yellow{background:var(--yellow-light);color:var(--yellow)}
+.p-gray{background:rgba(255,255,255,.06);color:var(--ink2)}
+.tb-action-btn{padding:3px 9px;border-radius:6px;border:1px solid var(--border2);background:transparent;
+  font-family:'Sora',sans-serif;font-size:.65rem;font-weight:600;cursor:pointer;color:var(--ink2);transition:all .15s;margin-left:4px}
+.tb-action-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ══ LOADING SPINNER ════════════════════════════════════════════════════════ */
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ NOTIFICATION ═══════════════════════════════════════════════════════════ */
+.notif{position:fixed;bottom:20px;right:20px;padding:12px 17px;border-radius:10px;font-size:.76rem;
+  font-weight:600;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;
+  box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;max-width:300px}
+.notif.show{transform:translateY(0);opacity:1}
+.n-success{background:#065f46;color:#fff;border:1px solid rgba(34,211,160,.3)}
+.n-error{background:#7f1d1d;color:#fff;border:1px solid rgba(240,81,106,.3)}
+.n-info{background:var(--surface2);color:var(--ink);border:1px solid var(--border2)}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+
+/* ══ LOADING OVERLAY ════════════════════════════════════════════════════════ */
+.loading-overlay{position:absolute;inset:0;background:rgba(10,13,20,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;z-index:20;border-radius:20px;display:none}
+.loading-overlay.show{display:flex}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     LOGIN / REGISTER VIEW
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-login" class="view active">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">☁️</div>
+      <div class="auth-brand-name">Cloud<span>Vault</span></div>
+    </div>
+    <p class="auth-tagline">Secure cloud storage — store, share & manage files effortlessly.</p>
+
+    <!-- User auth (default): no admin/register-as-admin here — admins sign in separately -->
+    <div id="auth-main-panel">
+
+    <!-- Login / Register mode -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('login',this)" id="mode-tab-login">Sign In</button>
+      <button class="mode-tab" onclick="setMode('register',this)" id="mode-tab-register">Create Account</button>
+    </div>
+
+    <!-- Error -->
+    <div class="auth-error" id="auth-error"></div>
+
+    <!-- Register-only fields -->
+    <div id="register-fields" style="display:none">
+      <div class="form-input-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" id="reg-fname" type="text" placeholder="Jamie">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" id="reg-lname" type="text" placeholder="Smith">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="auth-email" type="email" placeholder="you@example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="auth-pass" type="password" placeholder="••••••••">
+    </div>
+
+    <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">
+      Sign In →
+    </button>
+
+    <p style="margin-top:16px;text-align:center;font-size:.72rem;color:var(--ink3)">
+      <button type="button" class="btn-ghost" style="background:none;border:none;padding:0;cursor:pointer;color:var(--blue);font:inherit;text-decoration:underline" onclick="showAdminPortal()">
+        Administrator sign-in
+      </button>
+    </p>
+
+    <div style="margin-top:18px;padding:12px;background:var(--bg2);border-radius:9px;border:1px solid var(--border)">
+      <div style="font-size:.67rem;color:var(--ink3);font-family:'JetBrains Mono',monospace;line-height:1.8">
+        App URL: <span style="color:var(--blue)" id="api-hint-url"></span><br>
+        Ensure MySQL is running (user <span style="color:var(--ink2)">root</span>, database <span style="color:var(--ink2)">cloudvault</span>).
+      </div>
+    </div>
+    </div><!-- /auth-main-panel -->
+
+    <!-- Admin-only sign-in (no register; avoids exposing admin UI to regular users) -->
+    <div id="auth-admin-panel" style="display:none">
+      <div class="mode-tabs" style="margin-bottom:12px;border-bottom:none">
+        <button type="button" class="mode-tab active" style="cursor:default;border-bottom:none">Staff / Admin sign in</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--ink3);margin-bottom:18px">Use the email and password for an account with the <strong>admin</strong> role in the database.</p>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" id="admin-auth-email" type="email" placeholder="admin@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="admin-auth-pass" type="password" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" id="admin-auth-btn" onclick="handleAdminLogin()">Sign in to admin panel →</button>
+      <p style="margin-top:16px;text-align:center">
+        <button type="button" class="btn-ghost" style="background:none;border:none;padding:0;cursor:pointer;color:var(--ink2);font-size:.72rem" onclick="hideAdminPortal()">← Back to user sign in</button>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     USER VIEW
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-user" class="view">
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-icon">☁️</div>
+      <div class="sb-brand-name">Cloud<span>Vault</span></div>
+    </div>
+    <div style="padding:8px 6px">
+      <div class="sb-section">Navigation</div>
+      <button class="sb-link active" onclick="userPage('myfiles',this)"><span class="sb-link-icon">📁</span>My Files <span class="sb-link-count" id="sb-count">—</span></button>
+      <button class="sb-link" onclick="userPage('starred',this)"><span class="sb-link-icon">⭐</span>Starred</button>
+      <button class="sb-link" onclick="userPage('shared',this)"><span class="sb-link-icon">🔗</span>Shared</button>
+      <button class="sb-link" onclick="userPage('recent',this)"><span class="sb-link-icon">🕐</span>Recent</button>
+      <button class="sb-link" onclick="userPage('trash',this)"><span class="sb-link-icon">🗑️</span>Trash</button>
+    </div>
+    <div class="sb-storage">
+      <div class="sb-storage-label">Storage <span id="sb-storage-text">0 / ∞</span></div>
+      <div class="storage-bar"><div class="storage-fill" id="sb-storage-bar" style="width:5%"></div></div>
+      <div class="sb-user" onclick="logout()">
+        <div class="sb-avatar" id="user-avatar">J</div>
+        <div>
+          <div class="sb-user-name" id="user-display-name">User</div>
+          <div class="sb-user-role">Personal plan</div>
+        </div>
+        <button class="sb-logout" title="Sign out">↩</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="search-bar">
+        <span style="color:var(--ink4);font-size:.85rem">🔍</span>
+        <input type="text" placeholder="Search files..." oninput="searchFiles(this.value)" id="user-search">
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" onclick="openUpload()">⬆ Upload</button>
+      </div>
+    </div>
+    <div class="content-area" id="user-content">
+      <div class="empty-state"><div class="empty-icon">📁</div><div class="empty-text">Loading...</div></div>
+    </div>
+  </div>
+
+  <div class="detail-panel" id="detail-panel">
+    <div class="dp-head">
+      <div class="dp-title">File Details</div>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="dp-icon-wrap" id="dp-icon">📄</div>
+    <div class="dp-section">
+      <div class="dp-name" id="dp-name">—</div>
+      <div class="dp-path" id="dp-path">/My Files</div>
+      <div id="dp-rows"></div>
+    </div>
+    <div class="dp-actions" id="dp-actions"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     ADMIN VIEW
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-admin" class="view">
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-icon">☁️</div>
+      <div class="sb-brand-name">Cloud<span>Vault</span></div>
+    </div>
+    <div style="padding:8px 6px">
+      <div class="sb-section">Admin</div>
+      <button class="sb-link active" onclick="adminPage('dashboard',this)"><span class="sb-link-icon">📊</span>Dashboard</button>
+      <button class="sb-link" onclick="adminPage('files',this)"><span class="sb-link-icon">📁</span>All Files</button>
+      <button class="sb-link" onclick="adminPage('users',this)"><span class="sb-link-icon">👥</span>Users</button>
+    </div>
+    <div class="sb-storage">
+      <div class="sb-user" onclick="logout()">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444)" id="admin-avatar">A</div>
+        <div>
+          <div class="sb-user-name" id="admin-display-name">Admin</div>
+          <div class="sb-user-role">Super admin</div>
+        </div>
+        <button class="sb-logout">↩</button>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="search-bar"><span style="color:var(--ink4);font-size:.85rem">🔍</span><input type="text" placeholder="Search..."></div>
+    </div>
+    <div class="content-area" id="admin-content">
+      <div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Loading dashboard...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     UPLOAD MODAL
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Upload Files</div>
+      <button class="modal-close" onclick="closeUpload()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dropzone" onclick="triggerFilePicker()">
+        <div class="dropzone-icon">☁️</div>
+        <div class="dropzone-text">Drop files here or click to browse</div>
+        <div class="dropzone-hint">Supports all file types · Max 5 GB per file</div>
+      </div>
+      <div class="upload-list" id="upload-list"></div>
+      <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="closeUpload()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════════════════
+const API = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'http://localhost:8000';
+(function(){const el=document.getElementById('api-hint-url');if(el)el.textContent=API;})();
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+let authMode    = "login"; // "login" | "register"
+let session     = null;    // { token, user: {id, name, email, role} }
+let currentPage = "myfiles";
+let allFiles    = [];
+let adminFiles  = [];
+let selectedFile = null;
+
+// ════════════════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════════════════════════════════════════
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+}
+
+function showNotif(msg, type='info'){
+  const n = document.getElementById('notif');
+  n.className = `notif show n-${type}`;
+  n.innerHTML = msg;
+  clearTimeout(n._t);
+  n._t = setTimeout(() => n.classList.remove('show'), 3400);
+}
+
+function showError(msg){
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function hideError(){
+  document.getElementById('auth-error').classList.remove('show');
+}
+
+/** FastAPI may return detail as a string or a list of validation errors */
+function detailMessage(detail){
+  if(detail == null) return 'Request failed';
+  if(typeof detail === 'string') return detail;
+  if(Array.isArray(detail))
+    return detail.map(x => (x && typeof x === 'object' && x.msg) ? x.msg : String(x)).join('. ');
+  return String(detail);
+}
+
+async function parseJsonResponse(res){
+  const text = await res.text();
+  if(!text) return {};
+  try { return JSON.parse(text); } catch { return { detail: text || `HTTP ${res.status}` }; }
+}
+
+function setLoading(btn, loading){
+  btn.disabled = loading;
+  if(loading) btn.innerHTML = `<span class="spinner"></span> Please wait...`;
+}
+
+function fileIcon(name, type){
+  const ext = name.split('.').pop().toLowerCase();
+  const map = {pdf:'📄',doc:'📝',docx:'📝',xls:'📊',xlsx:'📊',ppt:'📑',pptx:'📑',
+    jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',mp4:'🎬',mov:'🎬',mp3:'🎵',
+    zip:'🗜️',rar:'🗜️',txt:'📃',js:'💻',py:'💻',html:'💻',css:'💻',json:'💻'};
+  return map[ext] || '📁';
+}
+
+function fileColorClass(name){
+  const ext = name.split('.').pop().toLowerCase();
+  if(['pdf'].includes(ext)) return 'ft-pdf';
+  if(['doc','docx'].includes(ext)) return 'ft-doc';
+  if(['jpg','jpeg','png','gif','webp'].includes(ext)) return 'ft-img';
+  if(['mp4','mov','avi'].includes(ext)) return 'ft-vid';
+  if(['zip','rar','tar'].includes(ext)) return 'ft-zip';
+  if(['xls','xlsx','csv'].includes(ext)) return 'ft-xls';
+  if(['txt','md'].includes(ext)) return 'ft-txt';
+  return 'ft-other';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// AUTH FORM LOGIC
+// ════════════════════════════════════════════════════════════════════════════
+function setMode(mode, btn){
+  authMode = mode;
+  document.querySelectorAll('#auth-main-panel .mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('register-fields').style.display = mode === 'register' ? 'block' : 'none';
+  document.getElementById('auth-btn').textContent = mode === 'register' ? 'Create Account →' : 'Sign In →';
+  hideError();
+}
+
+function showAdminPortal(){
+  hideError();
+  document.getElementById('auth-main-panel').style.display = 'none';
+  document.getElementById('auth-admin-panel').style.display = 'block';
+  const u = document.getElementById('auth-email').value.trim();
+  if(u) document.getElementById('admin-auth-email').value = u;
+}
+
+function hideAdminPortal(){
+  hideError();
+  document.getElementById('auth-admin-panel').style.display = 'none';
+  document.getElementById('auth-main-panel').style.display = 'block';
+}
+
+async function handleAuth(){
+  hideError();
+  const email = document.getElementById('auth-email').value.trim();
+  const pass  = document.getElementById('auth-pass').value;
+  const btn   = document.getElementById('auth-btn');
+
+  if(!email || !pass){ showError('Please enter email and password'); return; }
+
+  setLoading(btn, true);
+
+  try {
+    if(authMode === 'login'){
+      await doLogin(email, pass);
+    } else {
+      const fname = document.getElementById('reg-fname').value.trim();
+      const lname = document.getElementById('reg-lname').value.trim();
+      if(!fname){ showError('Please enter your first name'); setLoading(btn,false); return; }
+      const name = [fname, lname].filter(Boolean).join(' ');
+      await doRegister(name, email, pass);
+    }
+  } catch(e){
+    showError(e.message || 'Something went wrong');
+  }
+
+  btn.disabled = false;
+  btn.textContent = authMode === 'register' ? 'Create Account →' : 'Sign In →';
+}
+
+async function doLogin(email, pass){
+  const res = await fetch(`${API}/auth/login`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({email, password:pass})
+  });
+  const data = await parseJsonResponse(res);
+  if(!res.ok) throw new Error(detailMessage(data.detail) || 'Login failed');
+
+  session = { token: data.token, user: data.user };
+  onLoginSuccess();
+}
+
+async function doRegister(name, email, pass){
+  const body = {name, email, password:pass, role: 'user'};
+
+  const res = await fetch(`${API}/auth/register`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await parseJsonResponse(res);
+  if(!res.ok) throw new Error(detailMessage(data.detail) || 'Registration failed');
+
+  document.getElementById('auth-pass').value = '';
+  setMode('login', document.getElementById('mode-tab-login'));
+  showNotif('Account created. Please sign in with your email and password.', 'success');
+}
+
+async function handleAdminLogin(){
+  hideError();
+  const email = document.getElementById('admin-auth-email').value.trim();
+  const pass  = document.getElementById('admin-auth-pass').value;
+  const btn   = document.getElementById('admin-auth-btn');
+  if(!email || !pass){ showError('Please enter email and password'); return; }
+  setLoading(btn, true);
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:pass})
+    });
+    const data = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(data.detail) || 'Login failed');
+    if(data.user.role !== 'admin')
+      throw new Error('This account is not an administrator. Use the user sign-in page instead.');
+    session = { token: data.token, user: data.user };
+    onLoginSuccess();
+  } catch(e){
+    showError(e.message || 'Sign-in failed');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Sign in to admin panel →';
+}
+
+function onLoginSuccess(){
+  const u = session.user;
+  showNotif(`Welcome, ${u.name}! 👋`, 'success');
+
+  if(u.role === 'admin'){
+    document.getElementById('admin-display-name').textContent = u.name;
+    document.getElementById('admin-avatar').textContent = u.name[0].toUpperCase();
+    showView('admin');
+    adminPage('dashboard', document.querySelector('#view-admin .sb-link'));
+  } else {
+    document.getElementById('user-display-name').textContent = u.name;
+    document.getElementById('user-avatar').textContent = u.name[0].toUpperCase();
+    showView('user');
+    userPage('myfiles', document.querySelector('#view-user .sb-link'));
+  }
+}
+
+function logout(){
+  session = null; allFiles = []; selectedFile = null;
+  showView('login');
+  showNotif('Signed out', 'info');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// USER: FETCH & RENDER FILES
+// ════════════════════════════════════════════════════════════════════════════
+async function fetchFiles(filter='all'){
+  const res = await fetch(`${API}/files/?filter=${encodeURIComponent(filter)}&token=${encodeURIComponent(session.token)}`);
+  if(!res.ok) throw new Error('Failed to fetch files');
+  return await res.json();
+}
+
+async function userPage(page, btn){
+  currentPage = page;
+  closeDetail();
+
+  if(btn){
+    document.querySelectorAll('#view-user .sb-link').forEach(l => l.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const c = document.getElementById('user-content');
+  const titles = {myfiles:'My Files',starred:'Starred',shared:'Shared With Me',recent:'Recent',trash:'Trash'};
+  c.innerHTML = `<div class="empty-state"><div class="spinner" style="width:28px;height:28px;border-color:rgba(79,142,247,.3);border-top-color:var(--blue)"></div></div>`;
+
+  try {
+    allFiles = await fetchFiles(page);
+    document.getElementById('sb-count').textContent = allFiles.filter(f => !f.trash).length;
+
+    renderFiles(allFiles, titles[page] || 'Files', page);
+  } catch(e){
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Could not load files</div><div class="empty-sub">Open this app from your CloudVault server (same tab URL as the backend).</div></div>`;
+  }
+}
+
+function renderFiles(files, title, page){
+  const c = document.getElementById('user-content');
+
+  if(!files.length){
+    c.innerHTML = `
+      <div class="page-header"><div class="page-title">${title}</div></div>
+      <div class="empty-state">
+        <div class="empty-icon">${page === 'trash' ? '🗑️' : '📂'}</div>
+        <div class="empty-text">${page === 'trash' ? 'Trash is empty' : 'No files here yet'}</div>
+        <div class="empty-sub">${page === 'myfiles' ? 'Upload a file to get started' : ''}</div>
+      </div>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">${title} <span style="font-size:.75rem;color:var(--ink3);font-weight:400">(${files.length})</span></div>
+      ${page === 'trash' ? `<button class="btn btn-danger btn-sm" onclick="emptyTrash()">Empty Trash</button>` : ''}
+    </div>
+    <div class="file-grid">
+      ${files.map(f => `
+        <div class="file-card ${f.starred ? 'starred' : ''}" id="fc-${f.id}" onclick="openDetail(${f.id})">
+          <button class="file-card-star" onclick="toggleStar(event, ${f.id})">★</button>
+          <div class="file-card-icon ${fileColorClass(f.name)}">${fileIcon(f.name)}</div>
+          <div class="file-card-name" title="${f.name}">${f.name}</div>
+          <div class="file-card-meta">${f.size} · ${f.created_at || ''}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function searchFiles(q){
+  if(!q.trim()){ renderFiles(allFiles, 'Search Results', currentPage); return; }
+  const filtered = allFiles.filter(f => f.name.toLowerCase().includes(q.toLowerCase()));
+  renderFiles(filtered, `Results for "${q}"`, currentPage);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DETAIL PANEL
+// ════════════════════════════════════════════════════════════════════════════
+function openDetail(id){
+  const f = allFiles.find(x => x.id === id);
+  if(!f) return;
+  selectedFile = f;
+
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('dp-icon').textContent = fileIcon(f.name);
+  document.getElementById('dp-name').textContent = f.name;
+  document.getElementById('dp-path').textContent = '/My Files';
+  document.getElementById('dp-rows').innerHTML = `
+    <div class="dp-row"><span class="dp-key">Size</span><span class="dp-val">${f.size}</span></div>
+    <div class="dp-row"><span class="dp-key">Type</span><span class="dp-val">${f.name.split('.').pop().toUpperCase()}</span></div>
+    <div class="dp-row"><span class="dp-key">Date</span><span class="dp-val">${f.created_at || '—'}</span></div>
+    <div class="dp-row"><span class="dp-key">Starred</span><span class="dp-val">${f.starred ? '⭐ Yes' : 'No'}</span></div>
+  `;
+
+  
+  if(f.trash){
+    document.getElementById('dp-actions').innerHTML = `
+      <button class="dp-action-btn" onclick="restoreFile()">↩ Restore File</button>
+      <button class="dp-action-btn danger" onclick="permanentDelete()">❌ Delete Forever</button>
+    `;
+  } else {
+
+  document.getElementById('dp-actions').innerHTML = `
+
+    <button class="dp-action-btn download-btn" onclick="dpDownload()">
+      ⬇️ Download File
+    </button>
+
+    <button class="dp-action-btn share-btn" onclick="dpShare()">
+      🔗 Copy Share Link
+    </button>
+
+    <button class="dp-action-btn star-btn" onclick="dpStar()">
+      ${f.starred ? '💔 Remove Star' : '⭐ Add to Starred'}
+    </button>
+
+    <button class="dp-action-btn rename-btn" onclick="renameCurrentFile()">
+      ✏️ Rename File
+    </button>
+
+    <button class="dp-action-btn copy-btn" onclick="duplicateCurrentFile()">
+      📋 Make Copy
+    </button>
+
+    <button class="dp-action-btn move-btn" onclick="moveCurrentFile()">
+      📂 Move File
+    </button>
+
+    <button class="dp-action-btn danger delete-btn" onclick="dpDelete()">
+      🗑️ Move to Trash
+    </button>
+
+  `;
+}
+} 
+function closeDetail(){
+  selectedFile = null;
+  document.getElementById('detail-panel').classList.remove('open');
+}
+function downloadFile(fileOrId) {
+  const file = typeof fileOrId === 'object' ? fileOrId : allFiles.find(f => f.id === fileOrId);
+  if (!file) { showNotif('No file selected', 'error'); return; }
+  const url = `${API}/files/${file.id}/download?token=${encodeURIComponent(session.token)}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showNotif(`Downloading "${file.name}"…`, 'success');
+}
+
+async function copyShareLink(fileId) {
+  const id = fileId || (selectedFile && selectedFile.id);
+  const file = allFiles.find(f => f.id === id);
+  if (!file) { showNotif('No file selected', 'error'); return; }
+
+  try {
+    const res = await fetch(`${API}/files/${file.id}/share?token=${encodeURIComponent(session.token)}`, { method: 'POST' });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(detailMessage(data.detail));
+
+    const shareUrl = data.url || (data.token && `${API}/files/shared/${data.token}`);
+    if (!shareUrl) throw new Error('No share URL returned');
+
+    await copyToClipboard(shareUrl);
+    showNotif('Share link copied!', 'success');
+  } catch (e) {
+    showNotif(`Could not create share link: ${e.message || 'error'}`, 'error');
+  }
+}
+
+async function copyToClipboard(text){
+  if(!text) throw new Error('No text to copy');
+  try {
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch(_) {}
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  textarea.setAttribute('readonly', '');
+  document.body.appendChild(textarea);
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+  document.execCommand('copy');
+  document.body.removeChild(textarea);
+}
+
+function dpDownload() {
+  if (!selectedFile) return showNotif('No file selected', 'error');
+  downloadFile(selectedFile.id);
+}
+
+function dpShare() {
+  if (!selectedFile) return showNotif('No file selected', 'error');
+  copyShareLink(selectedFile.id);
+}
+
+function dpStar() {
+  if (!selectedFile) return showNotif('No file selected', 'error');
+  toggleStar(selectedFile.id);
+}
+
+function dpDelete() {
+  if (!selectedFile) return showNotif('No file selected', 'error');
+  trashFile(selectedFile.id);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// FILE OPERATIONS  (all hit real API)
+// ════════════════════════════════════════════════════════════════════════════
+async function toggleStar(eventOrId, maybeId){
+  let id = maybeId === undefined ? eventOrId : maybeId;
+  if(eventOrId && typeof eventOrId.stopPropagation === 'function'){
+    eventOrId.stopPropagation();
+  }
+
+  try {
+    const res = await fetch(`${API}/files/${id}/star?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif(data.starred ? 'Added to starred ⭐' : 'Removed from starred', 'success');
+    await userPage(currentPage);
+  } catch(e){
+    showNotif(`Failed to update star: ${e.message || 'error'}`, 'error');
+  }
+}
+
+async function trashFile(fileId){
+  const id = fileId || (selectedFile && selectedFile.id);
+  if(!id) return;
+  try {
+    const res = await fetch(`${API}/files/${id}/trash?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif('Moved to trash 🗑️', 'info');
+    if (selectedFile && selectedFile.id === id) closeDetail();
+    await userPage(currentPage);
+  } catch(e){ showNotif(`Failed to move to trash: ${e.message || 'error'}`, 'error'); }
+}
+
+async function restoreFile(){
+  if(!selectedFile) return;
+  try {
+    const res = await fetch(`${API}/files/${selectedFile.id}/restore?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif('File restored ✅', 'success');
+    closeDetail();
+    await userPage(currentPage);
+  } catch(e){ showNotif(`Failed to restore file: ${e.message || 'error'}`, 'error'); }
+}
+
+async function permanentDelete(){
+  if(!selectedFile) return;
+  if(!confirm(`Delete "${selectedFile.name}" forever? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`${API}/files/${selectedFile.id}?token=${session.token}`, {method:'DELETE'});
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif('Deleted permanently', 'error');
+    closeDetail();
+    await userPage(currentPage);
+  } catch(e){ showNotif(`Failed to delete file: ${e.message || 'error'}`, 'error'); }
+}
+
+async function emptyTrash(){
+  const trashed = allFiles.filter(f => f.trash);
+  if(!trashed.length) return;
+  if(!confirm(`Permanently delete ${trashed.length} file(s)?`)) return;
+  try {
+    await Promise.all(trashed.map(async f => {
+      const res = await fetch(`${API}/files/${f.id}?token=${session.token}`, {method:'DELETE'});
+      if (!res.ok) {
+        const data = await parseJsonResponse(res);
+        throw new Error(detailMessage(data.detail));
+      }
+    }));
+    showNotif('Trash emptied', 'info');
+    await userPage('trash');
+  } catch(e){ showNotif(`Failed to empty trash: ${e.message || 'error'}`, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// UPLOAD
+// ════════════════════════════════════════════════════════════════════════════
+function openUpload(){ document.getElementById('upload-modal').classList.add('open'); }
+function closeUpload(){ document.getElementById('upload-modal').classList.remove('open'); document.getElementById('upload-list').innerHTML = ''; }
+
+function triggerFilePicker(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.multiple = true;
+  input.onchange = () => uploadFiles(Array.from(input.files));
+  input.click();
+}
+
+async function uploadFiles(files){
+  const list = document.getElementById('upload-list');
+
+  for(const file of files){
+    const itemId = 'up-' + Date.now() + Math.random();
+    list.innerHTML += `
+      <div class="upload-item" id="${itemId}">
+        <span style="font-size:1.1rem">${fileIcon(file.name)}</span>
+        <span class="upload-item-name">${file.name}</span>
+        <span class="upload-item-status us-prog" id="${itemId}-s">Uploading...</span>
+      </div>`;
+
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`${API}/files/upload?token=${session.token}`, {method:'POST', body:fd});
+      if(!res.ok) throw new Error();
+      document.getElementById(`${itemId}-s`).textContent = '✓ Done';
+      document.getElementById(`${itemId}-s`).className = 'upload-item-status us-done';
+    } catch {
+      document.getElementById(`${itemId}-s`).textContent = '✗ Failed';
+      document.getElementById(`${itemId}-s`).className = 'upload-item-status us-err';
+    }
+  }
+
+  showNotif(`${files.length} file(s) uploaded`, 'success');
+  setTimeout(() => { closeUpload(); userPage(currentPage); }, 1200);
+}
+// ════════════════════════════════════════════════════════════════════════════
+// ADMIN PAGES
+// ════════════════════════════════════════════════════════════════════════════
+async function adminPage(page, btn){
+  if(btn){
+    document.querySelectorAll('#view-admin .sb-link').forEach(l => l.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const c = document.getElementById('admin-content');
+  c.innerHTML = `<div class="empty-state"><div class="spinner" style="width:28px;height:28px;border-color:rgba(79,142,247,.3);border-top-color:var(--blue)"></div></div>`;
+
+  if(page === 'dashboard') await renderAdminDashboard(c);
+  else if(page === 'users') await renderAdminUsers(c);
+  else if(page === 'files') await renderAdminFiles(c);
+}
+
+async function renderAdminDashboard(c){
+  try {
+    const [statsRes] = await Promise.all([
+      fetch(`${API}/admin/stats?token=${session.token}`)
+    ]);
+    const stats = await statsRes.json();
+
+    c.innerHTML = `
+      <div class="page-header"><div class="page-title">Dashboard</div></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">Total Users</div><div class="stat-val">${stats.total_users}</div></div>
+        <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-label">Total Files</div><div class="stat-val">${stats.total_files}</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Active Files</div><div class="stat-val">${stats.active_files}</div></div>
+        <div class="stat-card"><div class="stat-icon">🗑️</div><div class="stat-label">In Trash</div><div class="stat-val">${stats.trashed_files}</div></div>
+      </div>
+      <div style="color:var(--ink3);font-size:.78rem">Use sidebar to manage Users and Files.</div>
+    `;
+  } catch(e){
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Could not load dashboard</div></div>`;
+  }
+}
+
+async function renderAdminUsers(c){
+  try {
+    const res = await fetch(`${API}/admin/users?token=${session.token}`);
+    const users = await res.json();
+
+    c.innerHTML = `
+      <div class="page-header"><div class="page-title">Users (${users.length})</div></div>
+      <div class="data-table">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${users.map(u => `
+              <tr>
+                <td><strong>${u.name}</strong></td>
+                <td style="font-family:'JetBrains Mono',monospace;font-size:.7rem">${u.email}</td>
+                <td><span class="pill ${u.role === 'admin' ? 'p-red' : 'p-blue'}">${u.role}</span></td>
+                <td><span class="pill ${u.is_active ? 'p-green' : 'p-gray'}">${u.is_active ? 'Active' : 'Inactive'}</span></td>
+                <td>${u.created_at}</td>
+                <td>
+                  <button class="tb-action-btn" onclick="toggleUserActive(${u.id})">${u.is_active ? 'Deactivate' : 'Activate'}</button>
+                  <button class="tb-action-btn" onclick="deleteUser(${u.id})" style="color:var(--red)">Delete</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e){
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Failed to load users</div></div>`;
+  }
+}
+
+async function renderAdminFiles(c){
+  try {
+    const res = await fetch(`${API}/files/admin/all?token=${session.token}`);
+    const files = await res.json();
+    adminFiles = files;
+
+    c.innerHTML = `
+      <div class="page-header"><div class="page-title">All Files (${files.length})</div></div>
+      <div class="data-table">
+        <table>
+          <thead><tr><th>Name</th><th>Size</th><th>Owner</th><th>Status</th><th>Uploaded</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${files.map(f => `
+              <tr>
+                <td>${fileIcon(f.name)} ${f.name}</td>
+                <td>${f.size}</td>
+                <td>${f.owner_name || f.owner_id}</td>
+                <td><span class="pill ${f.trash ? 'p-red' : 'p-green'}">${f.trash ? 'Trashed' : 'Active'}</span></td>
+                <td>${f.created_at}</td>
+                <td>
+                  <button class="tb-action-btn" onclick="adminDownload(${f.id})">Download</button>
+                  <button class="tb-action-btn" onclick="adminShare(${f.id})">Share</button>
+                  ${f.trash ? `
+                    <button class="tb-action-btn" onclick="adminRestore(${f.id})">Restore</button>
+                    <button class="tb-action-btn" style="color:var(--red)" onclick="adminDeleteForever(${f.id})">Delete</button>
+                  ` : `
+                    <button class="tb-action-btn" onclick="adminTrash(${f.id})">Trash</button>
+                  `}
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e){
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Failed to load files</div></div>`;
+  }
+}
+
+function adminDownload(id){
+  const file = adminFiles.find(f => f.id === id);
+  if(!file) return showNotif('File not found', 'error');
+  downloadFile(file);
+}
+
+async function adminShare(id){
+  const file = adminFiles.find(f => f.id === id);
+  if(!file) return showNotif('File not found', 'error');
+  try {
+    const res = await fetch(`${API}/files/${id}/share?token=${encodeURIComponent(session.token)}`, { method: 'POST' });
+    const data = await parseJsonResponse(res);
+    if (!res.ok) throw new Error(detailMessage(data.detail));
+    const shareUrl = data.url || (data.token && `${API}/files/shared/${data.token}`);
+    await navigator.clipboard.writeText(shareUrl);
+    showNotif('Share link copied!', 'success');
+  } catch (e) {
+    showNotif(`Could not create share link: ${e.message || 'error'}`, 'error');
+  }
+}
+
+async function adminTrash(id){
+  try {
+    const res = await fetch(`${API}/files/${id}/trash?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
+    const data = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif('File moved to trash', 'info');
+    await adminPage('files');
+  } catch(e){ showNotif(`Failed to trash file: ${e.message || 'error'}`, 'error'); }
+}
+
+async function adminRestore(id){
+  try {
+    const res = await fetch(`${API}/files/${id}/restore?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
+    const data = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif('File restored', 'success');
+    await adminPage('files');
+  } catch(e){ showNotif(`Failed to restore file: ${e.message || 'error'}`, 'error'); }
+}
+
+async function adminDeleteForever(id){
+  if(!confirm('Delete this file forever? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`${API}/files/${id}?token=${encodeURIComponent(session.token)}`, {method:'DELETE'});
+    const data = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(data.detail));
+    showNotif('File deleted permanently', 'error');
+    await adminPage('files');
+  } catch(e){ showNotif(`Failed to delete file: ${e.message || 'error'}`, 'error'); }
+}
+
+async function toggleUserActive(userId){
+  try {
+    await fetch(`${API}/admin/users/${userId}/toggle?token=${session.token}`, {method:'PATCH'});
+    showNotif('User status updated', 'success');
+    adminPage('users');
+  } catch(e){ showNotif('Failed', 'error'); }
+}
+
+async function deleteUser(userId){
+  if(!confirm('Delete this user? This cannot be undone.')) return;
+  try {
+    await fetch(`${API}/admin/users/${userId}?token=${session.token}`, {method:'DELETE'});
+    showNotif('User deleted', 'error');
+    adminPage('users');
+  } catch(e){ showNotif('Failed', 'error'); }
+}
+
+// Drag & drop on dropzone
+document.getElementById('upload-modal').addEventListener('dragover', e => { e.preventDefault(); });
+document.getElementById('upload-modal').addEventListener('drop', e => {
+  e.preventDefault();
+  uploadFiles(Array.from(e.dataTransfer.files));
+});
+</script>
+</body>
+</html>
+
