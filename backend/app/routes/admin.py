@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from jose import jwt
 import os
+import shutil
 
 from app.database import get_db
 from app.models import User, File as FileModel
@@ -56,6 +57,7 @@ def get_all_users(token: str = Query(...), db: Session = Depends(get_db)):
     ]
 
 
+# ── DEACTIVATE / REACTIVATE (toggle) ─────────────────────────────────────────
 @router.patch("/users/{user_id}/toggle")
 def toggle_user(user_id: int, token: str = Query(...), db: Session = Depends(get_db)):
     admin = require_admin(token, db)
@@ -69,14 +71,44 @@ def toggle_user(user_id: int, token: str = Query(...), db: Session = Depends(get
     return {"is_active": user.is_active}
 
 
+# ── DELETE USER — removes everything ─────────────────────────────────────────
 @router.delete("/users/{user_id}")
 def delete_user(user_id: int, token: str = Query(...), db: Session = Depends(get_db)):
     admin = require_admin(token, db)
     if admin.id == user_id:
         raise HTTPException(status_code=400, detail="Cannot delete yourself")
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # STEP 1 — Deactivate immediately so their JWT stops working right now
+    user.is_active = False
+    db.commit()
+
+    # STEP 2 — Delete every file record from DB + the actual file from disk
+    user_files = db.query(FileModel).filter(FileModel.owner_id == user_id).all()
+    for f in user_files:
+        if os.path.exists(f.path):
+            try:
+                os.remove(f.path)
+            except Exception:
+                pass
+        db.delete(f)
+    db.commit()
+
+    # STEP 3 — Remove the user's upload folder completely
+    safe_name = ''.join(
+        c if c.isalnum() or c in ('-', '_') else '_'
+        for c in (user.name or 'user').strip()
+    )
+    safe_name = safe_name.strip('_') or 'user'
+    user_dir = os.path.join("uploads", f"{safe_name}_{user_id}")
+    if os.path.isdir(user_dir):
+        shutil.rmtree(user_dir, ignore_errors=True)
+
+    # STEP 4 — Delete the user row from DB
     db.delete(user)
     db.commit()
-    return {"message": "User deleted"}
+
+    return {"message": f"User and all their data have been permanently deleted"}
