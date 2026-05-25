@@ -849,8 +849,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
     <div style="margin-top:18px;padding:12px;background:var(--bg2);border-radius:9px;border:1px solid var(--border)">
       <div style="font-size:.67rem;color:var(--ink3);font-family:'JetBrains Mono',monospace;line-height:1.8">
-        App URL: <span style="color:var(--blue)" id="api-hint-url"></span><br>
-        Ensure MySQL is running (user <span style="color:var(--ink2)">root</span>, database <span style="color:var(--ink2)">cloudvault</span>).
+        API: <span style="color:var(--blue)" id="api-hint-url"></span><br>
+        <span id="api-hint-extra" style="color:var(--ink3)">Local dev: run backend on port 8000. GitHub Pages: set <code style="color:var(--ink2)">frontend/config.js</code> to your Render URL.</span>
       </div>
     </div>
     </div><!-- /auth-main-panel -->
@@ -1041,12 +1041,27 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 <div class="notif" id="notif"></div>
 
+<script src="config.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════════════════════
 // CONFIG
 // ════════════════════════════════════════════════════════════════════════════
-const API = (window.location.origin && window.location.origin !== 'null') ? window.location.origin : 'http://localhost:8000';
-(function(){const el=document.getElementById('api-hint-url');if(el)el.textContent=API;})();
+function resolveApiBase(){
+  const configured = (window.CLOUDVAULT_API_URL || '').trim().replace(/\/$/, '');
+  if(configured) return configured;
+  const origin = window.location.origin;
+  if(origin && origin !== 'null' && !origin.includes('github.io')) return origin;
+  return 'http://localhost:8000';
+}
+const API = resolveApiBase();
+(function(){
+  const el=document.getElementById('api-hint-url');
+  if(el) el.textContent=API;
+  const extra=document.getElementById('api-hint-extra');
+  if(extra && location.hostname.includes('github.io') && /localhost|127\.0\.0\.1/.test(API)){
+    extra.innerHTML='<span style="color:var(--yellow)">⚠ Hosted UI detected — edit <code>frontend/config.js</code> with your Render backend URL, then redeploy Pages.</span>';
+  }
+})();
 
 // ════════════════════════════════════════════════════════════════════════════
 // STATE
