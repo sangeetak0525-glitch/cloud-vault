@@ -5,4 +5,4 @@
  * Example after deploying backend to Render:
  *   window.CLOUDVAULT_API_URL = 'https://cloudvault-xxxx.onrender.com';
  */
-window.CLOUDVAULT_API_URL = '';
+window.CLOUDVAULT_API_URL = 'https://cloudvault-backend.onrender.com';
