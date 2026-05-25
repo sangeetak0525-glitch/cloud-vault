@@ -38,6 +38,19 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class Folder(Base):
+    __tablename__ = "folders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(120), nullable=False)
+    owner_id = Column(Integer, nullable=False, index=True)
+    parent_id = Column(Integer, ForeignKey("folders.id"), nullable=True, index=True)
+    color = Column(String(20), default="yellow")
+    starred = Column(Boolean, default=False)
+    trash = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class File(Base):
     __tablename__ = "files"
 
@@ -47,6 +60,7 @@ class File(Base):
     size = Column(String(50), default="0 KB")
     file_type = Column(String(100), default="application/octet-stream")
     owner_id = Column(Integer, nullable=False)
+    folder_id = Column(Integer, ForeignKey("folders.id"), nullable=True, index=True)
     starred = Column(Boolean, default=False)
     shared = Column(Boolean, default=False)
     trash = Column(Boolean, default=False)

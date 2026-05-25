@@ -620,6 +620,12 @@ body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--ink);font-si
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
 .page-title{font-size:1.15rem;font-weight:700;color:var(--ink)}
 .header-actions{display:flex;gap:8px}
+.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:16px;font-size:.75rem;color:var(--ink3);flex-wrap:wrap}
+.bc-item{cursor:pointer;transition:color .15s;border:none;background:none;font-family:'Sora',sans-serif;color:var(--ink3);padding:0;font-size:inherit}
+.bc-item:hover{color:var(--blue)}
+.bc-item.active{color:var(--ink);font-weight:600;cursor:default}
+.bc-sep{color:var(--ink4)}
+.folder-card .file-card-icon{background:var(--yellow-light)!important}
 
 /* ══ FILE GRID ══════════════════════════════════════════════════════════════ */
 .file-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:11px;margin-bottom:24px}
@@ -736,13 +742,54 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .loading-overlay{position:absolute;inset:0;background:rgba(10,13,20,.7);backdrop-filter:blur(4px);
   display:flex;align-items:center;justify-content:center;z-index:20;border-radius:20px;display:none}
 .loading-overlay.show{display:flex}
+
+/* ══ SHARED FILE VIEW ═══════════════════════════════════════════════════════ */
+#view-share{align-items:center;justify-content:center;flex-direction:column;padding:24px;overflow-y:auto}
+.share-shell{width:100%;max-width:900px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden}
+.share-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+  border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.share-brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink)}
+.share-brand span{color:var(--blue)}
+.share-meta{font-size:.72rem;color:var(--ink3)}
+.share-actions{display:flex;gap:8px;flex-wrap:wrap}
+.share-preview{min-height:320px;max-height:70vh;background:var(--bg2);display:flex;align-items:center;
+  justify-content:center;padding:20px;overflow:auto}
+.share-preview img,.share-preview video,.share-preview audio{max-width:100%;max-height:65vh;border-radius:8px}
+.share-preview iframe,.share-preview embed{width:100%;min-height:60vh;border:none;border-radius:8px;background:#fff}
+.share-preview pre{width:100%;max-height:60vh;overflow:auto;margin:0;padding:16px;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:.75rem;
+  color:var(--ink);white-space:pre-wrap;word-break:break-word}
+.share-fallback{text-align:center;color:var(--ink3);padding:40px 20px}
+.share-fallback-icon{font-size:3rem;margin-bottom:12px;opacity:.6}
 </style>
 </head>
 <body>
-
+<!--
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 <div class="bg-glow2"></div>
+-->
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SHARED FILE VIEW (public link)
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="view-share" class="view">
+  <div class="share-shell">
+    <div class="share-head">
+      <div>
+        <div class="share-brand">☁️ Cloud<span>Vault</span></div>
+        <div class="share-meta" id="share-meta">Loading shared file…</div>
+      </div>
+      <div class="share-actions">
+        <button class="btn btn-ghost btn-sm" id="share-download-btn" style="display:none">⬇ Download</button>
+        <button class="btn btn-primary btn-sm" onclick="goToAppHome()">Open CloudVault</button>
+      </div>
+    </div>
+    <div class="share-preview" id="share-preview">
+      <div class="spinner" style="width:32px;height:32px;border-color:rgba(79,142,247,.3);border-top-color:var(--blue)"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════════════════════════
      LOGIN / REGISTER VIEW
@@ -868,6 +915,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <input type="text" placeholder="Search files..." oninput="searchFiles(this.value)" id="user-search">
       </div>
       <div class="topbar-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openNewFolderModal()">📁 New Folder</button>
         <button class="btn btn-primary btn-sm" onclick="openUpload()">⬆ Upload</button>
       </div>
     </div>
@@ -888,6 +936,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div id="dp-rows"></div>
     </div>
     <div class="dp-actions" id="dp-actions"></div>
+    <div id="dp-share-box" style="display:none;padding:0 14px 14px">
+      <div style="font-size:.68rem;color:var(--ink3);margin-bottom:6px;font-weight:600">Share link (copy manually):</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="dp-share-url" type="text" readonly style="flex:1;padding:7px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--bg2);color:var(--ink);font-size:.7rem;font-family:monospace;outline:none;min-width:0" onclick="this.select()" value="">
+        <button onclick="copyShareBoxUrl()" style="padding:7px 10px;border-radius:7px;border:1px solid var(--border2);background:var(--blue-glow);color:var(--blue);font-size:.75rem;cursor:pointer;font-family:inherit">Copy</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -950,6 +1005,40 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<div class="modal-overlay" id="folder-modal">
+  <div class="modal" style="width:400px">
+    <div class="modal-head">
+      <div class="modal-title">New Folder</div>
+      <button class="modal-close" onclick="closeNewFolderModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Folder name</label>
+        <input class="form-input" id="new-folder-name" type="text" placeholder="e.g. Documents" maxlength="120">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeNewFolderModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="createFolder()">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="move-modal">
+  <div class="modal" style="width:420px">
+    <div class="modal-head">
+      <div class="modal-title">Move to Folder</div>
+      <button class="modal-close" onclick="closeMoveModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="move-folder-list" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="btn btn-ghost btn-sm" onclick="closeMoveModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="notif" id="notif"></div>
 
 <script>
@@ -964,10 +1053,18 @@ const API = (window.location.origin && window.location.origin !== 'null') ? wind
 // ════════════════════════════════════════════════════════════════════════════
 let authMode    = "login"; // "login" | "register"
 let session     = null;    // { token, user: {id, name, email, role} }
-let currentPage = "myfiles";
-let allFiles    = [];
-let adminFiles  = [];
-let selectedFile = null;
+let currentPage     = "myfiles";
+let currentFolderId = null;   // null = root (My Files)
+let folderPath      = [];     // [{id, name}, ...] for breadcrumb
+let allFiles        = [];
+let allFolders      = [];
+let adminFiles      = [];
+let selectedFile    = null;
+
+const FOLDER_COLORS = {
+  yellow:'var(--yellow-light)', blue:'rgba(79,142,247,.15)', green:'var(--green-light)',
+  red:'var(--red-light)', purple:'var(--purple-light)', pink:'rgba(244,114,182,.15)', gray:'rgba(100,116,139,.15)',
+};
 
 // ════════════════════════════════════════════════════════════════════════════
 // UI HELPERS
@@ -1021,6 +1118,14 @@ function fileIcon(name, type){
     jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',mp4:'🎬',mov:'🎬',mp3:'🎵',
     zip:'🗜️',rar:'🗜️',txt:'📃',js:'💻',py:'💻',html:'💻',css:'💻',json:'💻'};
   return map[ext] || '📁';
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
 }
 
 function fileColorClass(name){
@@ -1159,7 +1264,8 @@ function onLoginSuccess(){
 }
 
 function logout(){
-  session = null; allFiles = []; selectedFile = null;
+  session = null; allFiles = []; allFolders = []; selectedFile = null;
+  currentFolderId = null; folderPath = [];
   showView('login');
   showNotif('Signed out', 'info');
 }
@@ -1167,14 +1273,29 @@ function logout(){
 // ════════════════════════════════════════════════════════════════════════════
 // USER: FETCH & RENDER FILES
 // ════════════════════════════════════════════════════════════════════════════
-async function fetchFiles(filter='all'){
-  const res = await fetch(`${API}/files/?filter=${encodeURIComponent(filter)}&token=${encodeURIComponent(session.token)}`);
-  if(!res.ok) throw new Error('Failed to fetch files');
-  return await res.json();
+async function fetchFiles(filter='all', folderId=null){
+  let url = `${API}/files/?filter=${encodeURIComponent(filter)}&token=${encodeURIComponent(session.token)}`;
+  if((filter === 'all' || filter === 'myfiles') && folderId != null){
+    url += `&folder_id=${encodeURIComponent(folderId)}`;
+  }
+  const res = await fetch(url);
+  const data = await parseJsonResponse(res);
+  if(!res.ok) throw new Error(detailMessage(data.detail) || 'Failed to fetch files');
+  return data;
+}
+
+async function fetchFolders(parentId=null){
+  let url = `${API}/folders/?token=${encodeURIComponent(session.token)}`;
+  if(parentId != null) url += `&parent_id=${encodeURIComponent(parentId)}`;
+  const res = await fetch(url);
+  const data = await parseJsonResponse(res);
+  if(!res.ok) throw new Error(detailMessage(data.detail) || 'Failed to fetch folders');
+  return data;
 }
 
 async function userPage(page, btn){
   currentPage = page;
+  if(page !== 'myfiles'){ currentFolderId = null; folderPath = []; }
   closeDetail();
 
   if(btn){
@@ -1187,49 +1308,197 @@ async function userPage(page, btn){
   c.innerHTML = `<div class="empty-state"><div class="spinner" style="width:28px;height:28px;border-color:rgba(79,142,247,.3);border-top-color:var(--blue)"></div></div>`;
 
   try {
-    allFiles = await fetchFiles(page);
-    document.getElementById('sb-count').textContent = allFiles.filter(f => !f.trash).length;
+    const filter = page === 'myfiles' ? 'all' : page;
+    if(page === 'myfiles'){
+      allFolders = await fetchFolders(currentFolderId);
+      allFiles = await fetchFiles('all', currentFolderId);
+    } else {
+      allFolders = [];
+      allFiles = await fetchFiles(filter);
+    }
+    try {
+      if(page === 'myfiles'){
+        const countRes = await fetch(`${API}/files/?filter=all&everywhere=true&token=${encodeURIComponent(session.token)}`);
+        const allUserFiles = await parseJsonResponse(countRes);
+        if(countRes.ok) document.getElementById('sb-count').textContent = (allUserFiles || []).length;
+      } else {
+        document.getElementById('sb-count').textContent = allFiles.filter(f => !f.trash).length;
+      }
+    } catch(_) {}
 
-    renderFiles(allFiles, titles[page] || 'Files', page);
+    renderExplorer(allFiles, allFolders, titles[page] || 'Files', page);
   } catch(e){
-    c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Could not load files</div><div class="empty-sub">Open this app from your CloudVault server (same tab URL as the backend).</div></div>`;
+    console.error('userPage error', e);
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Could not load files</div><div class="empty-sub">${escapeHtml(e.message || 'Check that the server is running and you are signed in.')}</div></div>`;
   }
 }
 
-function renderFiles(files, title, page){
-  const c = document.getElementById('user-content');
+function openFolder(folderId, folderName){
+  const id = parseInt(folderId, 10);
+  if(!id) return;
+  const existing = folderPath.findIndex(f => f.id === id);
+  if(existing >= 0){
+    folderPath = folderPath.slice(0, existing + 1);
+  } else {
+    folderPath.push({id, name: folderName || 'Folder'});
+  }
+  currentFolderId = id;
+  userPage('myfiles');
+}
 
-  if(!files.length){
+function navigateToFolder(index){
+  if(index < 0){
+    currentFolderId = null;
+    folderPath = [];
+  } else {
+    folderPath = folderPath.slice(0, index + 1);
+    currentFolderId = folderPath[folderPath.length - 1].id;
+  }
+  userPage('myfiles');
+}
+
+function renderBreadcrumb(){
+  if(currentPage !== 'myfiles') return '';
+  let html = `<button class="bc-item ${!currentFolderId ? 'active' : ''}" onclick="navigateToFolder(-1)">My Files</button>`;
+  folderPath.forEach((f, i) => {
+    const isLast = i === folderPath.length - 1;
+    html += `<span class="bc-sep">›</span>`;
+    html += isLast
+      ? `<span class="bc-item active">${escapeHtml(f.name)}</span>`
+      : `<button class="bc-item" onclick="navigateToFolder(${i})">${escapeHtml(f.name)}</button>`;
+  });
+  return `<div class="breadcrumb">${html}</div>`;
+}
+
+function renderFolderCard(folder){
+  const bg = FOLDER_COLORS[folder.color] || FOLDER_COLORS.yellow;
+  const count = (folder.file_count || 0) + (folder.subfolder_count || 0);
+  return `
+    <div class="file-card folder-card" data-folder-id="${folder.id}" data-folder-name="${escapeHtml(folder.name)}" role="button" tabindex="0">
+      <div class="file-card-icon ft-folder" style="background:${bg}">📁</div>
+      <div class="file-card-name" title="${escapeHtml(folder.name)}">${escapeHtml(folder.name)}</div>
+      <div class="file-card-meta">${count} item${count !== 1 ? 's' : ''}</div>
+    </div>`;
+}
+
+function renderFileCard(f){
+  return `
+    <div class="file-card ${f.starred ? 'starred' : ''}" id="fc-${f.id}" onclick="openDetail(${f.id})">
+      <button class="file-card-star" onclick="toggleStar(event, ${f.id})">★</button>
+      <div class="file-card-icon ${fileColorClass(f.name)}">${fileIcon(f.name)}</div>
+      <div class="file-card-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
+      <div class="file-card-meta">${f.size} · ${f.created_at || ''}</div>
+    </div>`;
+}
+
+function renderExplorer(files, folders, title, page){
+  const c = document.getElementById('user-content');
+  const showFolders = page === 'myfiles';
+  const total = (showFolders ? folders.length : 0) + files.length;
+  const breadcrumb = showFolders ? renderBreadcrumb() : '';
+
+  if(!total){
     c.innerHTML = `
-      <div class="page-header"><div class="page-title">${title}</div></div>
+      ${breadcrumb}
+      <div class="page-header"><div class="page-title">${title}</div>
+        ${page === 'myfiles' ? `<div class="header-actions"><button class="btn btn-ghost btn-sm" onclick="openNewFolderModal()">📁 New Folder</button></div>` : ''}
+      </div>
       <div class="empty-state">
         <div class="empty-icon">${page === 'trash' ? '🗑️' : '📂'}</div>
-        <div class="empty-text">${page === 'trash' ? 'Trash is empty' : 'No files here yet'}</div>
-        <div class="empty-sub">${page === 'myfiles' ? 'Upload a file to get started' : ''}</div>
+        <div class="empty-text">${page === 'trash' ? 'Trash is empty' : 'This folder is empty'}</div>
+        <div class="empty-sub">${page === 'myfiles' ? 'Create a folder or upload files to get started' : ''}</div>
       </div>`;
     return;
   }
 
   c.innerHTML = `
+    ${breadcrumb}
     <div class="page-header">
-      <div class="page-title">${title} <span style="font-size:.75rem;color:var(--ink3);font-weight:400">(${files.length})</span></div>
-      ${page === 'trash' ? `<button class="btn btn-danger btn-sm" onclick="emptyTrash()">Empty Trash</button>` : ''}
+      <div class="page-title">${title} <span style="font-size:.75rem;color:var(--ink3);font-weight:400">(${total})</span></div>
+      <div class="header-actions">
+        ${page === 'myfiles' ? `<button class="btn btn-ghost btn-sm" onclick="openNewFolderModal()">📁 New Folder</button>` : ''}
+        ${page === 'trash' ? `<button class="btn btn-danger btn-sm" onclick="emptyTrash()">Empty Trash</button>` : ''}
+      </div>
     </div>
     <div class="file-grid">
-      ${files.map(f => `
-        <div class="file-card ${f.starred ? 'starred' : ''}" id="fc-${f.id}" onclick="openDetail(${f.id})">
-          <button class="file-card-star" onclick="toggleStar(event, ${f.id})">★</button>
-          <div class="file-card-icon ${fileColorClass(f.name)}">${fileIcon(f.name)}</div>
-          <div class="file-card-name" title="${f.name}">${f.name}</div>
-          <div class="file-card-meta">${f.size} · ${f.created_at || ''}</div>
-        </div>`).join('')}
+      ${showFolders ? folders.map(renderFolderCard).join('') : ''}
+      ${files.map(renderFileCard).join('')}
     </div>`;
 }
 
+function renderFiles(files, title, page){
+  renderExplorer(files, [], title, page);
+}
+
 function searchFiles(q){
-  if(!q.trim()){ renderFiles(allFiles, 'Search Results', currentPage); return; }
+  if(!q.trim()){ renderExplorer(allFiles, allFolders, 'Search Results', currentPage); return; }
   const filtered = allFiles.filter(f => f.name.toLowerCase().includes(q.toLowerCase()));
-  renderFiles(filtered, `Results for "${q}"`, currentPage);
+  const folders = allFolders.filter(f => f.name.toLowerCase().includes(q.toLowerCase()));
+  renderExplorer(filtered, folders, `Results for "${q}"`, currentPage);
+}
+
+function openNewFolderModal(){
+  document.getElementById('new-folder-name').value = '';
+  document.getElementById('folder-modal').classList.add('open');
+  setTimeout(() => document.getElementById('new-folder-name').focus(), 100);
+}
+function closeNewFolderModal(){ document.getElementById('folder-modal').classList.remove('open'); }
+
+async function createFolder(){
+  const name = document.getElementById('new-folder-name').value.trim();
+  if(!name){ showNotif('Enter a folder name', 'error'); return; }
+  try {
+    const body = {name, parent_id: currentFolderId};
+    const res = await fetch(`${API}/folders/?token=${encodeURIComponent(session.token)}`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+    });
+    const data = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(data.detail));
+    closeNewFolderModal();
+    showNotif(`Folder "${data.name}" created`, 'success');
+    userPage('myfiles');
+  } catch(e){ showNotif(e.message || 'Could not create folder', 'error'); }
+}
+
+function openMoveModal(){
+  document.getElementById('move-modal').classList.add('open');
+  loadMoveFolderList();
+}
+function closeMoveModal(){ document.getElementById('move-modal').classList.remove('open'); }
+
+async function loadMoveFolderList(){
+  const list = document.getElementById('move-folder-list');
+  list.innerHTML = `<div style="color:var(--ink3);font-size:.75rem;padding:8px">Loading...</div>`;
+  try {
+    const res = await fetch(`${API}/folders/?flat=true&token=${encodeURIComponent(session.token)}`);
+    const all = await res.json();
+    const currentFolder = selectedFile ? selectedFile.folder_id : null;
+    let html = `<button class="btn btn-ghost" style="width:100%;justify-content:flex-start;text-align:left" onclick="moveFileTo(null)">📂 My Files (root)</button>`;
+    for(const f of all){
+      if(f.id === currentFolder) continue;
+      html += `<button class="btn btn-ghost" style="width:100%;justify-content:flex-start;text-align:left;margin-top:4px" onclick="moveFileTo(${f.id})">📁 ${f.name}</button>`;
+    }
+    if(all.length === 0) html += `<div style="color:var(--ink3);font-size:.75rem;padding:12px">No folders yet. Create one first.</div>`;
+    list.innerHTML = html;
+  } catch(e){
+    list.innerHTML = `<div style="color:var(--red);font-size:.75rem">Could not load folders</div>`;
+  }
+}
+
+async function moveFileTo(folderId){
+  if(!selectedFile) return;
+  try {
+    const res = await fetch(`${API}/files/${selectedFile.id}/move?token=${encodeURIComponent(session.token)}`, {
+      method: 'PATCH', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({folder_id: folderId}),
+    });
+    const data = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(data.detail));
+    closeMoveModal();
+    closeDetail();
+    showNotif(folderId ? 'File moved to folder' : 'File moved to My Files', 'success');
+    userPage('myfiles');
+  } catch(e){ showNotif(e.message || 'Could not move file', 'error'); }
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1240,10 +1509,17 @@ function openDetail(id){
   if(!f) return;
   selectedFile = f;
 
+  // Hide the share-url fallback box for fresh opens
+  const shareBox = document.getElementById('dp-share-box');
+  if(shareBox) shareBox.style.display = 'none';
+
   document.getElementById('detail-panel').classList.add('open');
   document.getElementById('dp-icon').textContent = fileIcon(f.name);
   document.getElementById('dp-name').textContent = f.name;
-  document.getElementById('dp-path').textContent = '/My Files';
+  const loc = f.folder_id
+    ? (allFolders.find(x => x.id === f.folder_id)?.name || 'Folder')
+    : (folderPath.length ? folderPath.map(p => p.name).join(' / ') : 'My Files');
+  document.getElementById('dp-path').textContent = loc;
   document.getElementById('dp-rows').innerHTML = `
     <div class="dp-row"><span class="dp-key">Size</span><span class="dp-val">${f.size}</span></div>
     <div class="dp-row"><span class="dp-key">Type</span><span class="dp-val">${f.name.split('.').pop().toUpperCase()}</span></div>
@@ -1251,50 +1527,27 @@ function openDetail(id){
     <div class="dp-row"><span class="dp-key">Starred</span><span class="dp-val">${f.starred ? '⭐ Yes' : 'No'}</span></div>
   `;
 
-  
   if(f.trash){
     document.getElementById('dp-actions').innerHTML = `
       <button class="dp-action-btn" onclick="restoreFile()">↩ Restore File</button>
       <button class="dp-action-btn danger" onclick="permanentDelete()">❌ Delete Forever</button>
     `;
   } else {
-
-  document.getElementById('dp-actions').innerHTML = `
-
-    <button class="dp-action-btn download-btn" onclick="dpDownload()">
-      ⬇️ Download File
-    </button>
-
-    <button class="dp-action-btn share-btn" onclick="dpShare()">
-      🔗 Copy Share Link
-    </button>
-
-    <button class="dp-action-btn star-btn" onclick="dpStar()">
-      ${f.starred ? '💔 Remove Star' : '⭐ Add to Starred'}
-    </button>
-
-    <button class="dp-action-btn rename-btn" onclick="renameCurrentFile()">
-      ✏️ Rename File
-    </button>
-
-    <button class="dp-action-btn copy-btn" onclick="duplicateCurrentFile()">
-      📋 Make Copy
-    </button>
-
-    <button class="dp-action-btn move-btn" onclick="moveCurrentFile()">
-      📂 Move File
-    </button>
-
-    <button class="dp-action-btn danger delete-btn" onclick="dpDelete()">
-      🗑️ Move to Trash
-    </button>
-
-  `;
+    document.getElementById('dp-actions').innerHTML = `
+      <button class="dp-action-btn" onclick="dpDownload()">⬇ Download</button>
+      <button class="dp-action-btn" onclick="dpShare()">🔗 Copy Share Link</button>
+      <button class="dp-action-btn" onclick="openMoveModal()">📁 Move to Folder</button>
+      <button class="dp-action-btn" onclick="dpStar()">${f.starred ? '★ Remove Star' : '⭐ Add to Starred'}</button>
+      <button class="dp-action-btn danger" onclick="dpDelete()">🗑 Move to Trash</button>
+    `;
+  }
 }
-} 
+
 function closeDetail(){
   selectedFile = null;
   document.getElementById('detail-panel').classList.remove('open');
+  const shareBox = document.getElementById('dp-share-box');
+  if(shareBox) shareBox.style.display = 'none';
 }
 function downloadFile(fileOrId) {
   const file = typeof fileOrId === 'object' ? fileOrId : allFiles.find(f => f.id === fileOrId);
@@ -1311,44 +1564,89 @@ function downloadFile(fileOrId) {
 }
 
 async function copyShareLink(fileId) {
-  const id = fileId || (selectedFile && selectedFile.id);
+  const id = fileId !== undefined ? fileId : (selectedFile && selectedFile.id);
   const file = allFiles.find(f => f.id === id);
   if (!file) { showNotif('No file selected', 'error'); return; }
+
+  // Give the button immediate visual feedback
+  const btn = document.querySelector('#dp-actions .dp-action-btn[onclick="dpShare()"]');
+  if(btn){ btn.textContent = '⏳ Generating link...'; btn.disabled = true; }
 
   try {
     const res = await fetch(`${API}/files/${file.id}/share?token=${encodeURIComponent(session.token)}`, { method: 'POST' });
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(detailMessage(data.detail));
 
-    const shareUrl = data.url || (data.token && `${API}/files/shared/${data.token}`);
-    if (!shareUrl) throw new Error('No share URL returned');
+    const shareUrl = data.url || (data.token ? `${API}/?share=${data.token}` : null);
+    if (!shareUrl) throw new Error('No share URL returned from server');
 
-    await copyToClipboard(shareUrl);
-    showNotif('Share link copied!', 'success');
+    // Try to copy to clipboard
+    let copied = false;
+    try {
+      await copyToClipboard(shareUrl);
+      copied = true;
+    } catch(_) {}
+
+    if (copied) {
+      showNotif('🔗 Share link copied to clipboard!', 'success');
+      if(btn){ btn.textContent = '✅ Link Copied!'; }
+      setTimeout(() => { if(btn && !btn.disabled){ btn.textContent = '🔗 Copy Share Link'; } }, 2500);
+    } else {
+      // Clipboard unavailable — show the URL inline so user can copy manually
+      showNotif('Clipboard unavailable — see link below', 'info');
+      const shareBox = document.getElementById('dp-share-box');
+      if(shareBox){
+        shareBox.style.display = 'block';
+        shareBox.querySelector('input').value = shareUrl;
+        shareBox.querySelector('input').select();
+      }
+    }
   } catch (e) {
     showNotif(`Could not create share link: ${e.message || 'error'}`, 'error');
+  } finally {
+    if(btn){ btn.disabled = false; if(btn.textContent === '⏳ Generating link...') btn.textContent = '🔗 Copy Share Link'; }
   }
+}
+
+function copyShareBoxUrl(){
+  const input = document.getElementById('dp-share-url');
+  if(!input || !input.value) return;
+  input.select();
+  input.setSelectionRange(0, input.value.length);
+  copyToClipboard(input.value).then(() => {
+    showNotif('🔗 Share link copied!', 'success');
+  }).catch(() => {
+    // User can still manually Ctrl+C — just show input selected
+    showNotif('Select the link and press Ctrl+C / Cmd+C to copy', 'info');
+  });
 }
 
 async function copyToClipboard(text){
   if(!text) throw new Error('No text to copy');
-  try {
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-  } catch(_) {}
 
+  // 1. Modern Clipboard API (HTTPS or localhost + page focus)
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch(_) {
+      // fall through to legacy method
+    }
+  }
+
+  // 2. Legacy execCommand fallback
   const textarea = document.createElement('textarea');
   textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.left = '-9999px';
+  textarea.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
   textarea.setAttribute('readonly', '');
   document.body.appendChild(textarea);
+  textarea.focus();
   textarea.select();
-  textarea.setSelectionRange(0, textarea.value.length);
-  document.execCommand('copy');
+  textarea.setSelectionRange(0, text.length);
+  const ok = document.execCommand('copy');
   document.body.removeChild(textarea);
+  if(!ok) throw new Error('Clipboard copy failed');
+  return true;
 }
 
 function dpDownload() {
@@ -1363,7 +1661,7 @@ function dpShare() {
 
 function dpStar() {
   if (!selectedFile) return showNotif('No file selected', 'error');
-  toggleStar(selectedFile.id);
+  toggleStar(null, selectedFile.id);
 }
 
 function dpDelete() {
@@ -1380,26 +1678,34 @@ async function toggleStar(eventOrId, maybeId){
     eventOrId.stopPropagation();
   }
 
+  // Remember if this file was open in detail panel so we can reopen it after refresh
+  const reopenId = (selectedFile && selectedFile.id === id) ? id : null;
+
   try {
     const res = await fetch(`${API}/files/${id}/star?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(detailMessage(data.detail));
     showNotif(data.starred ? 'Added to starred ⭐' : 'Removed from starred', 'success');
     await userPage(currentPage);
+    // Re-open detail panel for the same file after refresh
+    if(reopenId){
+      const updated = allFiles.find(f => f.id === reopenId);
+      if(updated) openDetail(reopenId);
+    }
   } catch(e){
     showNotif(`Failed to update star: ${e.message || 'error'}`, 'error');
   }
 }
 
 async function trashFile(fileId){
-  const id = fileId || (selectedFile && selectedFile.id);
+  const id = fileId !== undefined ? fileId : (selectedFile && selectedFile.id);
   if(!id) return;
   try {
     const res = await fetch(`${API}/files/${id}/trash?token=${encodeURIComponent(session.token)}`, {method:'PATCH'});
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(detailMessage(data.detail));
     showNotif('Moved to trash 🗑️', 'info');
-    if (selectedFile && selectedFile.id === id) closeDetail();
+    closeDetail(); // Close before userPage so selectedFile is cleared properly
     await userPage(currentPage);
   } catch(e){ showNotif(`Failed to move to trash: ${e.message || 'error'}`, 'error'); }
 }
@@ -1474,7 +1780,9 @@ async function uploadFiles(files){
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(`${API}/files/upload?token=${session.token}`, {method:'POST', body:fd});
+      let uploadUrl = `${API}/files/upload?token=${session.token}`;
+      if(currentPage === 'myfiles' && currentFolderId != null) uploadUrl += `&folder_id=${currentFolderId}`;
+      const res = await fetch(uploadUrl, {method:'POST', body:fd});
       if(!res.ok) throw new Error();
       document.getElementById(`${itemId}-s`).textContent = '✓ Done';
       document.getElementById(`${itemId}-s`).className = 'upload-item-status us-done';
@@ -1487,6 +1795,7 @@ async function uploadFiles(files){
   showNotif(`${files.length} file(s) uploaded`, 'success');
   setTimeout(() => { closeUpload(); userPage(currentPage); }, 1200);
 }
+
 // ════════════════════════════════════════════════════════════════════════════
 // ADMIN PAGES
 // ════════════════════════════════════════════════════════════════════════════
@@ -1607,7 +1916,7 @@ async function adminShare(id){
     const res = await fetch(`${API}/files/${id}/share?token=${encodeURIComponent(session.token)}`, { method: 'POST' });
     const data = await parseJsonResponse(res);
     if (!res.ok) throw new Error(detailMessage(data.detail));
-    const shareUrl = data.url || (data.token && `${API}/files/shared/${data.token}`);
+    const shareUrl = data.url || (data.token && `${API}/?share=${data.token}`);
     await navigator.clipboard.writeText(shareUrl);
     showNotif('Share link copied!', 'success');
   } catch (e) {
@@ -1663,11 +1972,109 @@ async function deleteUser(userId){
   } catch(e){ showNotif('Failed', 'error'); }
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// SHARED FILE PREVIEW (public ?share=TOKEN links)
+// ════════════════════════════════════════════════════════════════════════════
+function getShareTokenFromUrl(){
+  const params = new URLSearchParams(location.search);
+  let token = params.get('share');
+  if(!token && location.hash.startsWith('#share=')) token = location.hash.slice(7);
+  return token || null;
+}
+
+function goToAppHome(){
+  history.replaceState(null, '', location.pathname);
+  showView(session ? (session.user.role === 'admin' ? 'admin' : 'user') : 'login');
+  if(session && session.user.role !== 'admin') userPage('myfiles');
+}
+
+function sharePreviewKind(name, fileType){
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const ft = (fileType || '').toLowerCase();
+  if(ft.startsWith('image/') || ['jpg','jpeg','png','gif','webp','svg','bmp'].includes(ext)) return 'image';
+  if(ft.startsWith('video/') || ['mp4','webm','mov','avi','mkv'].includes(ext)) return 'video';
+  if(ft.startsWith('audio/') || ['mp3','wav','ogg','m4a','aac'].includes(ext)) return 'audio';
+  if(ft === 'application/pdf' || ext === 'pdf') return 'pdf';
+  if(ft.startsWith('text/') || ['txt','md','json','xml','html','htm','css','js','py','csv','log'].includes(ext)) return 'text';
+  return 'other';
+}
+
+async function openShareView(token){
+  showView('share');
+  const preview = document.getElementById('share-preview');
+  const metaEl = document.getElementById('share-meta');
+  const dlBtn = document.getElementById('share-download-btn');
+  preview.innerHTML = `<div class="spinner" style="width:32px;height:32px;border-color:rgba(79,142,247,.3);border-top-color:var(--blue)"></div>`;
+  metaEl.textContent = 'Loading shared file…';
+  dlBtn.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/files/shared/${encodeURIComponent(token)}/info`);
+    const meta = await parseJsonResponse(res);
+    if(!res.ok) throw new Error(detailMessage(meta.detail));
+
+    const contentUrl = `${API}${meta.preview_url}`;
+    const downloadUrl = `${API}${meta.download_url}`;
+    metaEl.textContent = `${meta.name} · ${meta.size}${meta.created_at ? ' · ' + meta.created_at : ''}`;
+    dlBtn.style.display = 'inline-flex';
+    dlBtn.onclick = () => { window.location.href = downloadUrl; };
+
+    const kind = sharePreviewKind(meta.name, meta.file_type);
+    if(kind === 'image'){
+      preview.innerHTML = `<img src="${contentUrl}" alt="${escapeHtml(meta.name)}">`;
+    } else if(kind === 'video'){
+      preview.innerHTML = `<video src="${contentUrl}" controls playsinline></video>`;
+    } else if(kind === 'audio'){
+      preview.innerHTML = `<audio src="${contentUrl}" controls style="width:100%"></audio>`;
+    } else if(kind === 'pdf'){
+      preview.innerHTML = `<iframe src="${contentUrl}" title="${escapeHtml(meta.name)}"></iframe>`;
+    } else if(kind === 'text'){
+      const textRes = await fetch(contentUrl);
+      if(!textRes.ok) throw new Error('Could not load file preview');
+      let text = await textRes.text();
+      if(text.length > 200000) text = text.slice(0, 200000) + '\n\n… (truncated)';
+      preview.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+    } else {
+      preview.innerHTML = `
+        <div class="share-fallback">
+          <div class="share-fallback-icon">${fileIcon(meta.name)}</div>
+          <div style="font-weight:600;color:var(--ink);margin-bottom:6px">${escapeHtml(meta.name)}</div>
+          <div style="font-size:.78rem;margin-bottom:16px">Preview is not available for this file type.</div>
+          <button class="btn btn-primary btn-sm" onclick="window.location.href='${downloadUrl}'">⬇ Download File</button>
+        </div>`;
+    }
+  } catch(e){
+    preview.innerHTML = `<div class="share-fallback"><div class="share-fallback-icon">⚠️</div><div style="font-weight:600;color:var(--red)">${escapeHtml(e.message || 'Invalid or expired link')}</div></div>`;
+    metaEl.textContent = 'Shared file unavailable';
+  }
+}
+
+(function initShareLink(){
+  const token = getShareTokenFromUrl();
+  if(token) openShareView(token);
+})();
+
 // Drag & drop on dropzone
 document.getElementById('upload-modal').addEventListener('dragover', e => { e.preventDefault(); });
 document.getElementById('upload-modal').addEventListener('drop', e => {
   e.preventDefault();
   uploadFiles(Array.from(e.dataTransfer.files));
+});
+
+// Folder cards: click via delegation (inline onclick breaks with JSON.stringify + double quotes)
+document.getElementById('user-content').addEventListener('click', (e) => {
+  const card = e.target.closest('[data-folder-id]');
+  if(!card) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openFolder(card.dataset.folderId, card.dataset.folderName);
+});
+document.getElementById('user-content').addEventListener('keydown', (e) => {
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest('[data-folder-id]');
+  if(!card) return;
+  e.preventDefault();
+  openFolder(card.dataset.folderId, card.dataset.folderName);
 });
 </script>
 </body>

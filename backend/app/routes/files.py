@@ -1,6 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from jose import jwt
 import uuid
@@ -8,7 +9,7 @@ from datetime import datetime, timedelta
 import os
 
 from app.database import get_db
-from app.models import File as FileModel, User, Share
+from app.models import File as FileModel, Folder, User, Share
 
 router = APIRouter(prefix="/files", tags=["Files"])
 
@@ -51,6 +52,10 @@ def human_size(size_bytes: int) -> str:
     return f"{size_bytes/1024**3:.1f} GB"
 
 
+class MoveFileSchema(BaseModel):
+    folder_id: Optional[int] = None   # None = move to root (My Files)
+
+
 def make_owner_folder(user: User) -> str:
     name      = (user.name or "user").strip()
     safe_name = ''.join(c if c.isalnum() or c in ('-', '_') else '_' for c in name)
@@ -61,9 +66,11 @@ def make_owner_folder(user: User) -> str:
 # ── LIST FILES ────────────────────────────────────────────────────────────────
 @router.get("/")
 def get_files(
-    filter: str     = Query("all", description="all | starred | shared | trash | recent"),
-    token:  str     = Query(...),
-    db:     Session = Depends(get_db),
+    filter:      str           = Query("all", description="all | starred | shared | trash | recent"),
+    folder_id:   Optional[int] = Query(None, description="None = root; omit on starred/shared/trash views"),
+    everywhere:  bool          = Query(False, description="If true with filter=all, list files in all folders"),
+    token:       str           = Query(...),
+    db:        Session       = Depends(get_db),
 ):
     user  = get_user_from_token(token, db)
     query = db.query(FileModel, User.name.label("owner_name")).join(User, FileModel.owner_id == User.id)
@@ -80,7 +87,18 @@ def get_files(
     elif filter == "recent":
         query = query.filter(FileModel.trash   == False).order_by(FileModel.id.desc()).limit(20)
     else:
-        query = query.filter(FileModel.trash   == False)
+        query = query.filter(FileModel.trash == False)
+        if not everywhere:
+            if folder_id is not None:
+                fq = db.query(Folder).filter(Folder.id == folder_id, Folder.trash == False)
+                if user.role != "admin":
+                    fq = fq.filter(Folder.owner_id == user.id)
+                folder = fq.first()
+                if not folder:
+                    raise HTTPException(status_code=404, detail="Folder not found")
+                query = query.filter(FileModel.folder_id == folder_id)
+            else:
+                query = query.filter(FileModel.folder_id.is_(None))
 
     return [
         {
@@ -88,6 +106,7 @@ def get_files(
             "name":       f.name,
             "size":       f.size,
             "file_type":  f.file_type,
+            "folder_id":  f.folder_id,
             "starred":    f.starred,
             "shared":     f.shared,
             "trash":      f.trash,
@@ -101,10 +120,11 @@ def get_files(
 # ── UPLOAD ────────────────────────────────────────────────────────────────────
 @router.post("/upload")
 def upload_file(
-    file:     UploadFile       = File(...),
-    token:    str              = Query(...),
-    owner_id: Optional[int]   = Query(None, description="Optional owner id (admins only)"),
-    db:       Session          = Depends(get_db),
+    file:      UploadFile       = File(...),
+    token:     str              = Query(...),
+    owner_id:  Optional[int]   = Query(None, description="Optional owner id (admins only)"),
+    folder_id: Optional[int]   = Query(None, description="Target folder; None = root"),
+    db:        Session          = Depends(get_db),
 ):
     user            = get_user_from_token(token, db)
     target_owner_id = user.id
@@ -117,6 +137,15 @@ def upload_file(
         if not target_user:
             raise HTTPException(status_code=404, detail="Target owner not found")
         target_owner_id = owner_id
+
+    if folder_id is not None:
+        folder = db.query(Folder).filter(
+            Folder.id == folder_id,
+            Folder.owner_id == target_owner_id,
+            Folder.trash == False,
+        ).first()
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
 
     user_dir  = os.path.join(UPLOAD_DIR, make_owner_folder(target_user))
     os.makedirs(user_dir, exist_ok=True)
@@ -133,12 +162,34 @@ def upload_file(
         size      = human_size(size_bytes),
         file_type = file.content_type or "application/octet-stream",
         owner_id  = target_owner_id,
+        folder_id = folder_id,
     )
     db.add(new_file)
     db.commit()
     db.refresh(new_file)
 
     return {"message": "Uploaded successfully", "file_id": new_file.id, "name": new_file.name, "owner_id": target_owner_id}
+
+
+# ── MOVE TO FOLDER ────────────────────────────────────────────────────────────
+@router.patch("/{file_id}/move")
+def move_file(file_id: int, data: MoveFileSchema, token: str = Query(...), db: Session = Depends(get_db)):
+    user  = get_user_from_token(token, db)
+    query = db.query(FileModel).filter(FileModel.id == file_id, FileModel.trash == False)
+    if user.role != "admin":
+        query = query.filter(FileModel.owner_id == user.id)
+    f = query.first()
+    if not f:
+        raise HTTPException(status_code=404, detail="File not found")
+    if data.folder_id is not None:
+        folder = db.query(Folder).filter(
+            Folder.id == data.folder_id, Folder.owner_id == user.id, Folder.trash == False,
+        ).first()
+        if not folder:
+            raise HTTPException(status_code=404, detail="Folder not found")
+    f.folder_id = data.folder_id
+    db.commit()
+    return {"message": "Moved", "folder_id": f.folder_id}
 
 
 # ── STAR / UNSTAR ─────────────────────────────────────────────────────────────
@@ -256,13 +307,15 @@ def create_share(file_id: int, token: str = Query(...), expires_hours: int = Que
     db.commit()
     db.refresh(share)
 
-    app_url = os.getenv("APP_URL", "http://localhost:8000")
-    return {"token": share_token, "url": f"{app_url}/files/shared/{share_token}", "expires_at": str(expires_at) if expires_at else None}
+    app_url = os.getenv("APP_URL", "http://localhost:8000").rstrip("/")
+    return {
+        "token": share_token,
+        "url": f"{app_url}/?share={share_token}",
+        "expires_at": str(expires_at) if expires_at else None,
+    }
 
 
-# ── DOWNLOAD shared file (no auth needed) ────────────────────────────────────
-@router.get("/shared/{share_token}")
-def download_shared(share_token: str, db: Session = Depends(get_db)):
+def _resolve_shared_file(share_token: str, db: Session):
     from app.models import Share
     share = db.query(Share).filter(Share.token == share_token).first()
     if not share:
@@ -274,4 +327,50 @@ def download_shared(share_token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="File not found")
     if not os.path.exists(f.path):
         raise HTTPException(status_code=404, detail="File missing on disk")
-    return FileResponse(f.path, filename=f.name)
+    return share, f
+
+
+# ── SHARED FILE (public, no auth) ─────────────────────────────────────────────
+@router.get("/shared/{share_token}/info")
+def shared_file_info(share_token: str, db: Session = Depends(get_db)):
+    _, f = _resolve_shared_file(share_token, db)
+    ext = f.name.rsplit(".", 1)[-1].lower() if "." in f.name else ""
+    return {
+        "name": f.name,
+        "size": f.size,
+        "file_type": f.file_type or "application/octet-stream",
+        "extension": ext,
+        "created_at": str(f.created_at)[:10] if f.created_at else "",
+        "preview_url": f"/files/shared/{share_token}/content",
+        "download_url": f"/files/shared/{share_token}/download",
+    }
+
+
+@router.get("/shared/{share_token}/content")
+def shared_file_content(share_token: str, db: Session = Depends(get_db)):
+    _, f = _resolve_shared_file(share_token, db)
+    return FileResponse(
+        f.path,
+        filename=f.name,
+        media_type=f.file_type or "application/octet-stream",
+        content_disposition_type="inline",
+    )
+
+
+@router.get("/shared/{share_token}/download")
+def shared_file_download(share_token: str, db: Session = Depends(get_db)):
+    _, f = _resolve_shared_file(share_token, db)
+    return FileResponse(
+        f.path,
+        filename=f.name,
+        media_type=f.file_type or "application/octet-stream",
+        content_disposition_type="attachment",
+    )
+
+
+@router.get("/shared/{share_token}")
+def shared_link_entry(share_token: str, db: Session = Depends(get_db)):
+    """Legacy share URLs redirect to in-app preview."""
+    _resolve_shared_file(share_token, db)
+    app_url = os.getenv("APP_URL", "http://localhost:8000").rstrip("/")
+    return RedirectResponse(url=f"{app_url}/?share={share_token}")
